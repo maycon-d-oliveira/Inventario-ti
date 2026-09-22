@@ -64,13 +64,8 @@ O serviço ficará disponível em `http://localhost:5000`.
 
 > A integração OpenEdge usa o arquivo `openedge.jar` na raiz do projeto. Antes de publicar o repositório, confirme que a licença do driver permite redistribuição.
 
-## Versionamento
-
-O Git ignora credenciais, bancos locais, ambientes virtuais e planilhas temporárias. Mantenha o arquivo `.env` apenas no ambiente onde a aplicação será executada.
 
 ## Screenshots
-
-> Adicione as imagens em `docs/images/` e substitua os caminhos abaixo quando elas estiverem disponíveis.
 
 ### Dashboard
 
