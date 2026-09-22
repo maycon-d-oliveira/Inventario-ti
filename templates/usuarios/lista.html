@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Usuários{% endblock %}
+{% block page_title %}Controle de Usuários{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><span>Usuários</span>{% endblock %}
+
+{% block page_actions %}
+    <a class="btn btn-primary" href="{{ url_for('usuarios.novo') }}">Novo usuário</a>
+{% endblock %}
+
+{% block content %}
+<p class="text-muted mb-6">{{ usuarios|length }} registros encontrados.</p>
+
+<section class="card">
+    <form id="filterForm" method="get" action="{{ url_for('usuarios.lista') }}">
+        <div class="filters-bar" style="display: flex; gap: var(--space-2); align-items: center;">
+            <input type="text" class="form-input" name="q" placeholder="Buscar por nome ou e-mail..." value="{{ filters.get('q', '') }}" aria-label="Buscar usuário" style="flex: 1;">
+            
+            <input type="hidden" name="sort_by" value="{{ sort_by|default('username') }}">
+            <input type="hidden" name="order" value="{{ order|default('asc') }}">
+            
+            <button class="btn btn-primary" type="submit">Filtrar</button>
+            
+            {% if filters.get('q') %}
+                <a class="btn btn-ghost" href="{{ url_for('usuarios.lista') }}">Limpar</a>
+            {% endif %}
+        </div>
+    </form>
+</section>
+
+<section class="card">
+    <div class="table-wrapper">
+        <table class="table" id="usuariosTable">
+            <thead>
+                <tr>
+                    <th scope="col" data-sort-col="id" style="cursor: pointer; width: 80px;">ID <span class="sort-icon">{{ '↑' if sort_by == 'id' and order == 'asc' else ('↓' if sort_by == 'id' and order == 'desc' else '↕') }}</span></th>
+                    <th scope="col" data-sort-col="username" style="cursor: pointer;">Nome de Usuário <span class="sort-icon">{{ '↑' if sort_by == 'username' and order == 'asc' else ('↓' if sort_by == 'username' and order == 'desc' else '↕') }}</span></th>
+                    <th scope="col" data-sort-col="email" style="cursor: pointer;">E-mail <span class="sort-icon">{{ '↑' if sort_by == 'email' and order == 'asc' else ('↓' if sort_by == 'email' and order == 'desc' else '↕') }}</span></th>
+                    <th scope="col">Função</th>
+                    <th scope="col" data-sort-col="created_at" style="cursor: pointer;">Data de Cadastro <span class="sort-icon">{{ '↑' if sort_by == 'created_at' and order == 'asc' else ('↓' if sort_by == 'created_at' and order == 'desc' else '↕') }}</span></th>
+                    <th scope="col" class="actions-cell">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in usuarios %}
+                    <tr>
+                        <td class="text-muted text-sm">{{ usuario.id }}</td>
+                        <td><strong>{{ usuario.username }}</strong></td>
+                        <td>{{ usuario.email }}</td>
+                        <td>
+                            {% if usuario.is_admin %}
+                                <span class="badge" style="background-color: #ebf8ff; color: #2b6cb0; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">ADMINISTRADOR</span>
+                            {% else %}
+                                <span class="badge" style="background-color: #f7fafc; color: #4a5568; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">PADRÃO</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-sm text-muted">{{ (usuario.created_at|string)[:10] if usuario.created_at else '-' }}</td>
+                        <td class="actions-cell">
+                            <div class="actions-inner" style="display: flex; gap: 8px;">
+                                <a class="action-icon" href="{{ url_for('usuarios.editar', usuario_id=usuario.id) }}" aria-label="Editar usuário">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </a>
+
+                                {% if current_user.id != usuario.id %}
+                                <form method="post" action="{{ url_for('usuarios.excluir', usuario_id=usuario.id) }}" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir o usuário {{ usuario.username }}?');">
+                                    <button type="submit" class="action-icon btn-danger-icon" aria-label="Excluir usuário" style="background: none; border: none; padding: 0; cursor: pointer; color: #e53e3e;">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                                    </button>
+                                </form>
+                                {% else %}
+                                <span class="text-xs text-muted" style="font-style: italic; align-self: center;">Você</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state" style="text-align: center; padding: var(--space-6);">
+                                <div class="empty-state-icon" style="font-size: 2rem;">👤</div>
+                                <h3>Nenhum usuário encontrado</h3>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<script>
+// Lógica JavaScript de Ordenação por cliques no header
+(function() {
+    var sortCols = document.querySelectorAll('#usuariosTable th[data-sort-col]');
+    sortCols.forEach(function(th) {
+        th.addEventListener('click', function() {
+            var col = th.getAttribute('data-sort-col');
+            var currentSort = "{{ sort_by|default('username') }}";
+            var currentOrder = "{{ order|default('asc') }}";
+
+            var newOrder = 'asc';
+            if (col === currentSort) {
+                newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+            }
+
+            var params = new URLSearchParams(window.location.search);
+            params.set('sort_by', col);
+            params.set('order', newOrder);
+
+            window.location.search = params.toString();
+        });
+    });
+})();
+</script>
+{% endblock %}

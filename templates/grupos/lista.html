@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Grupos WhatsApp{% endblock %}
+{% block page_title %}Grupos WhatsApp{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><span>Grupos</span>{% endblock %}
+{% block page_actions %}
+    <a class="btn btn-secondary" href="{{ url_for('grupos.exportar_csv') }}">Exportar CSV</a>
+{% endblock %}
+
+{% block content %}
+<!-- Grupos: visão consolidada de grupos e integrantes -->
+
+<section class="grid-two">
+    <!-- Resumo por grupo -->
+    <article class="card">
+        <h3>Resumo por grupo</h3>
+        <input type="text" class="form-input mb-4" data-table-filter="gruposTable" placeholder="Busca rápida nos grupos..." aria-label="Busca rápida nos grupos" style="max-width: 400px;">
+        <div class="table-wrapper">
+            <table class="table" id="gruposTable" data-sortable>
+                <thead>
+                    <tr>
+                        <th scope="col">Grupo</th>
+                        <th scope="col" style="text-align: right;">Total integrantes</th>
+                        <th scope="col" style="text-align: right;">Linhas corporativas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for grupo in grupos %}
+                        <tr>
+                            <td class="font-medium">{{ grupo.grupo }}</td>
+                            <td style="text-align: right;">{{ grupo.total_integrantes }}</td>
+                            <td style="text-align: right;"><span class="badge badge-info">{{ grupo.linhas_corporativas or 0 }}</span></td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="3" style="text-align: center; color: var(--color-muted);">Nenhum grupo encontrado.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <!-- Lista de integrantes -->
+    <article class="card">
+        <h3>Integrantes</h3>
+        <input type="text" class="form-input mb-4" data-table-filter="integrantesTable" placeholder="Busca rápida nos integrantes..." aria-label="Busca rápida nos integrantes" style="max-width: 400px;">
+        <div class="table-wrapper small-table">
+            <table class="table" id="integrantesTable" data-sortable>
+                <thead>
+                    <tr>
+                        <th scope="col">Grupo</th>
+                        <th scope="col">Nome</th>
+                        <th scope="col">Linha</th>
+                        <th scope="col" style="text-align: center;">Corporativa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in integrantes %}
+                        <tr>
+                            <td>{{ item.grupo or '-' }}</td>
+                            <td class="font-medium">{{ item.nome_integrante or '-' }}</td>
+                            <td>{{ item.linha or '-' }}</td>
+                            <td style="text-align: center;">
+                                {% if item.linha_corporativa %}
+                                    <span class="badge badge-success">Sim</span>
+                                {% else %}
+                                    <span class="badge badge-neutral">Não</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="4" style="text-align: center; color: var(--color-muted);">Nenhum integrante cadastrado.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+{% endblock %}

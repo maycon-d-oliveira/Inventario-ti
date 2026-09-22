@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Alterar Minha Senha{% endblock %}
+{% block page_title %}Segurança da Conta{% endblock %}
+
+{% block breadcrumb %}
+<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span>
+<span>Alterar Senha</span>
+{% endblock %}
+
+{% block content %}
+<section class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-header">Modificar Senha de Acesso</div>
+    <div class="card-body">
+        <form method="post" action="{{ url_for('auth.alterar_senha') }}" style="display: flex; flex-direction: column; gap: var(--space-4);">
+            
+            <div class="form-group">
+                <label class="form-label" for="senha_atual">Senha Atual</label>
+                <input class="form-input" type="password" id="senha_atual" name="senha_atual" required style="width: 100%;">
+            </div>
+
+            <div class="form-group" style="border-top: 1px solid var(--border-color); padding-top: var(--space-4);">
+                <label class="form-label" for="nova_senha">Nova Senha</label>
+                <input class="form-input" type="password" id="nova_senha" name="nova_senha" required style="width: 100%;" placeholder="Mínimo de caracteres seguro">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="confirmacao">Confirme a Nova Senha</label>
+                <input class="form-input" type="password" id="confirmacao" name="confirmacao" required style="width: 100%;">
+            </div>
+
+            <div class="form-actions" style="margin-top: var(--space-2); padding-top: var(--space-4); border-top: 1px solid var(--border-color);">
+                <button type="submit" class="btn btn-primary">Atualizar Senha</button>
+                <a href="{{ url_for('dashboard.home') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Importar JSON de Colaboradores{% endblock %}
+{% block page_title %}Importar JSON de Colaboradores{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><a href="{{ url_for('colaboradores.busca') }}">Colaboradores</a><span class="separator">/</span><span>Importar JSON</span>{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <h3 class="mb-4">Importar Colaboradores via JSON</h3>
+        <p class="text-muted mb-6">
+            Use esta opção caso a conexão JDBC com o OpenEdge não esteja funcionando.
+            O arquivo JSON deve ser gerado pelo script <code>func.py</code> executado fora do Docker.
+        </p>
+
+        <div class="alert alert-info mb-6">
+            <strong>Como gerar o JSON:</strong>
+            <ol class="mt-2">
+                <li>Execute fora do Docker: <code>python func.py</code></li>
+                <li>Isso criará o arquivo <code>funcionarios.json</code></li>
+                <li>Faça o upload dele abaixo</li>
+            </ol>
+        </div>
+
+        <form method="post" action="{{ url_for('colaboradores.importar_json') }}" enctype="multipart/form-data">
+            <div class="form-group mb-4">
+                <label class="form-label" for="json_file">Arquivo JSON</label>
+                <input class="form-input" type="file" id="json_file" name="json_file" accept=".json" required>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="btn btn-primary" type="submit">Importar</button>
+                <a class="btn btn-ghost" href="{{ url_for('colaboradores.busca') }}">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% block title %}Devolvidos{% endblock %}
+{% block page_title %}Celulares devolvidos{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><span>Devolvidos</span>{% endblock %}
+{% block page_actions %}
+    <a class="btn btn-secondary" href="{{ url_for('devolvidos.exportar_csv') }}">Exportar CSV</a>
+{% endblock %}
+
+{% block content %}
+<!-- Devolvidos: controle e triagem de aparelhos devolvidos -->
+
+<section class="grid-two">
+    <!-- Registrar devolução -->
+    <article class="card">
+        <h3>Registrar devolução</h3>
+        <form method="post" class="form-grid">
+            <div class="form-group">
+                <label class="form-label" for="dev_modelo">Modelo</label>
+                <input class="form-input" type="text" id="dev_modelo" name="modelo" placeholder="Modelo">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="dev_imei">IMEI</label>
+                <input class="form-input" type="text" id="dev_imei" name="imei" placeholder="15 dígitos">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="dev_usuario">Antigo usuário</label>
+                <input class="form-input" type="text" id="dev_usuario" name="antigo_usuario" placeholder="Nome do usuário">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="dev_unidade">Unidade</label>
+                <input class="form-input" type="text" id="dev_unidade" name="unidade" placeholder="Unidade">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="dev_status">Status</label>
+                <input class="form-input" type="text" id="dev_status" name="status" placeholder="DISPONÍVEL PARA USO">
+            </div>
+            <div class="form-group full-width">
+                <label class="form-label" for="dev_obs">Observação</label>
+                <textarea class="form-textarea" id="dev_obs" name="observacao" rows="3" placeholder="Detalhes..."></textarea>
+            </div>
+            <div class="full-width" style="display: flex; justify-content: flex-end;">
+                <button class="btn btn-primary" type="submit">Salvar</button>
+            </div>
+        </form>
+    </article>
+
+    <!-- Filtrar por status -->
+    <article class="card">
+        <h3>Filtrar por status</h3>
+        <form method="get" class="filters-bar" style="flex-direction: column;">
+            <select class="form-select" name="status" aria-label="Filtrar por status" style="width: 100%;">
+                <option value="">Todos os status</option>
+                {% for item in status_options %}
+                    <option value="{{ item.status }}" {% if filtro_status == item.status %}selected{% endif %}>{{ item.status }}</option>
+                {% endfor %}
+            </select>
+            <button class="btn btn-primary" type="submit" style="align-self: flex-end;">Filtrar</button>
+        </form>
+        <input type="text" class="form-input mt-4" data-table-filter="devolvidosTable" placeholder="Busca rápida nas linhas da tabela..." aria-label="Busca rápida na tabela" style="width: 100%;">
+    </article>
+</section>
+
+<!-- Formulário de exclusão em massa -->
+<form id="bulkForm" method="post" action="{{ url_for('devolvidos.excluir_multiplos') }}">
+    <!-- Barra de ações em massa -->
+    <div id="bulkToolbarDevolvidos" class="bulk-toolbar hidden">
+        <div class="bulk-toolbar-left">
+            <span id="selectedCountDevolvidos" class="text-sm font-medium">0 itens selecionados</span>
+        </div>
+        <div class="bulk-toolbar-actions">
+            <button type="button" class="btn btn-sm btn-ghost" onclick="toggleAll('devolvidosTable')">Selecionar todos</button>
+            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Excluir selecionados?');">Excluir selecionados</button>
+        </div>
+    </div>
+
+    <!-- Tabela de triagem -->
+    <section class="card">
+        <div class="table-wrapper">
+            <table class="table" id="devolvidosTable" data-sortable>
+                <thead>
+                    <tr>
+                        <th scope="col" style="width: 40px;"><input type="checkbox" onchange="toggleAllById('devolvidosTable', this.checked);" aria-label="Selecionar todos"></th>
+                        <th scope="col">ID</th>
+                        <th scope="col">Modelo</th>
+                        <th scope="col">IMEI</th>
+                        <th scope="col">Antigo usuário</th>
+                        <th scope="col">Unidade</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Observação</th>
+                        <th scope="col" class="actions-cell">Destino</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in devolvidos %}
+                        <tr>
+                            <td><input type="checkbox" name="ids[]" value="{{ item.id }}" class="row-checkbox-devolvido"></td>
+                            <td class="text-muted text-sm">{{ item.id }}</td>
+                            <td>{{ item.modelo or '-' }}</td>
+                            <td class="text-sm font-mono">{{ item.imei or '-' }}</td>
+                            <td>{{ item.antigo_usuario or '-' }}</td>
+                            <td>{{ item.unidade or '-' }}</td>
+                            <td><span class="badge {% if item.status == 'DISPONÍVEL PARA USO' %}badge-success{% else %}badge-warning{% endif %}">{{ item.status or '-' }}</span></td>
+                            <td class="text-sm">{{ item.observacao or '-' }}</td>
+                            <td class="actions-cell">
+                                <form method="post" action="{{ url_for('devolvidos.para_estoque', devolvido_id=item.id) }}" style="display: inline;">
+                                    <button type="submit" class="action-icon" aria-label="Mover para estoque" onclick="return confirm('Mover para estoque?');">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+                                        <span class="sr-only">Estoque</span>
+                                    </button>
+                                </form>
+                                <form method="post" action="{{ url_for('devolvidos.para_descarte', devolvido_id=item.id) }}" class="inline-form" style="display: inline-flex; gap: var(--space-2);">
+                                    <input type="date" class="form-input" name="data_descarte" style="width: 140px;" aria-label="Data de descarte">
+                                    <input type="text" class="form-input" name="motivo" placeholder="Motivo" style="width: 120px;" aria-label="Motivo do descarte">
+                                    <button type="submit" class="action-icon" aria-label="Mover para descarte" onclick="return confirm('Mover para descarte?');">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                                        <span class="sr-only">Descarte</span>
+                                    </button>
+                                </form>
+                                <form method="post" action="{{ url_for('devolvidos.excluir', devolvido_id=item.id) }}" style="display:inline;" onsubmit="return confirm('Excluir este registro?');">
+                                    <button type="submit" class="action-icon btn-danger-icon" aria-label="Excluir registro {{ item.id }}">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                                        <span class="sr-only">Excluir</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="9" style="text-align: center; color: var(--color-muted);">Nenhum registro devolvido encontrado.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</form>
+
+<script>
+    // Toggle all checkboxes by table ID
+    window.toggleAllById = function(tableId, checked) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        table.querySelectorAll('tbody input[type="checkbox"]').forEach(function(cb) {
+            cb.checked = checked;
+        });
+        updateBulkToolbarDevolvidos(tableId);
+    };
+
+    // Toggle all checkboxes (invert current state)
+    window.toggleAll = function(tableId) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        var mainCb = table.querySelector('thead input[type="checkbox"]');
+        if (mainCb) {
+            mainCb.checked = !mainCb.checked;
+            toggleAllById(tableId, mainCb.checked);
+        }
+    };
+
+    // Update bulk toolbar visibility for devolvidos table
+    function updateBulkToolbarDevolvidos(tableId) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        var checkboxes = table.querySelectorAll('tbody .row-checkbox-devolvido');
+        var checkedCount = Array.from(checkboxes).filter(function(cb) { return cb.checked; }).length;
+        var toolbar = document.getElementById('bulkToolbarDevolvidos');
+        var countSpan = document.getElementById('selectedCountDevolvidos');
+
+        if (checkedCount >0) {
+            toolbar.classList.remove('hidden');
+            countSpan.textContent = checkedCount + (checkedCount === 1 ? ' item selecionado' : ' itens selecionados');
+        } else {
+            toolbar.classList.add('hidden');
+        }
+
+        // Update main checkbox state
+        var mainCb = table.querySelector('thead input[type="checkbox"]');
+        if (mainCb) {
+            mainCb.checked = checkedCount === checkboxes.length && checkboxes.length >0;
+            mainCb.indeterminate = checkedCount >0 && checkedCount < checkboxes.length;
+        }
+    }
+
+    // Listen for checkbox changes in the devolvidos table
+    var devolvidosTable = document.getElementById('devolvidosTable');
+    if (devolvidosTable) {
+        devolvidosTable.addEventListener('change', function(e) {
+            if (e.target.classList.contains('row-checkbox-devolvido') || e.target === devolvidosTable.querySelector('thead input[type="checkbox"]')) {
+                updateBulkToolbarDevolvidos('devolvidosTable');
+            }
+        });
+    }
+
+    // Initial check for bulk toolbar
+    updateBulkToolbarDevolvidos('devolvidosTable');
+</script>
+{% endblock %}

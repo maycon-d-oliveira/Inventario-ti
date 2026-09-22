@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block title %}Mapear Importacao{% endblock %}
+{% block page_title %}Mapear planilha{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><a href="{{ url_for('importacao.importar') }}">Importacao</a><span class="separator">/</span><span>Mapear</span>{% endblock %}
+
+{% block content %}
+<!-- Progress overlay -->
+<div id="progressOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+    <div class="card" style="padding: var(--space-8); text-align: center; min-width: 300px;">
+        <div style="margin-bottom: var(--space-4);">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"><path d="M12 2v4m6.364 1.636l-1.414 1.414M20 12h-4m-12 0h4m4.364-1.636l1.414-1.414M12 16a4 4 0 100-8 4 4 0 100 8z"/></svg>
+        </div>
+        <p id="progressMessage" style="margin: 0; font-size: 1.125rem; font-weight: 500;">Processando...</p>
+    </div>
+</div>
+<style>
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+
+<form method="post" id="formMapear">
+    {% for sheet in sheet_names %}
+        {% set loop_idx = loop.index0 %}
+        <section class="card mb-6">
+            <div class="card-body">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 style="margin:0;">Aba: <strong>{{ sheet }}</strong></h3>
+                    <input type="hidden" name="sheet_{{ loop_idx }}" value="{{ sheet }}">
+                    <select class="form-select" name="table_{{ loop_idx }}" id="sel_{{ loop_idx }}"
+                            style="max-width:320px;"
+                            onchange="mudouTabela({{ loop_idx }}, this.value, '{{ sheet|safe }}')">
+                        <option value="">-- Ignorar esta aba --</option>
+                        {% for tkey, tlabel in tables_info.items() %}
+                            <option value="{{ tkey }}" {% if sugestoes.get(sheet) == tkey %}selected{% endif %}>{{ tlabel }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Mapeamentos: gera um painel para cada tabela sugerida -->
+                {% set sheet_cols_list = sheet_cols.get(sheet, []) %}
+                {% set preview_rows = sheet_preview.get(sheet, []) %}
+
+                {% for tkey, tlabel in tables_info.items() %}
+                    {% set is_active = (sugestoes.get(sheet) == tkey) %}
+                    <div id="painel_{{ loop_idx }}_{{ tkey }}" style="display:{% if is_active %}block{% else %}none{% endif %}; border-top:1px solid var(--color-border); padding-top:var(--space-4); margin-top:var(--space-4);">
+                        <p class="text-sm text-muted mb-4">
+                            Mapeie os campos da tabela <strong>{{ tlabel }}</strong> com as colunas da aba <strong>{{ sheet }}</strong>.
+                        </p>
+                        <div class="table-wrapper">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Campo na tabela</th>
+                                        <th scope="col">Coluna na planilha ({{ sheet }})</th>
+                                        <th scope="col">Preview</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% set table_fields = table_cols.get(tkey, []) %}
+                                    {% for field in table_fields %}
+                                        {% set fidx = loop.index0 %}
+                                        <tr>
+                                            <td>
+                                                <span class="font-medium">{{ field }}</span>
+                                            </td>
+                                            <td>
+                                                <select class="form-select" name="map_{{ loop_idx }}_{{ field }}">
+                                                    <option value="">-- Ignorar --</option>
+                                                    {% for sc in sheet_cols_list %}
+                                                        {% set scidx = loop.index0 %}
+                                                        {% set sugestao = '' %}
+                                                        {% if sc and field and (sc.lower().replace(' ', '_') in field.lower() or field.lower() in sc.lower()) %}
+                                                            {% set sugestao = 'selected' %}
+                                                        {% endif %}
+                                                        <option value="{{ scidx }}" {{ sugestao }}>{{ sc }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
+                                            <td class="text-sm text-muted">
+                                                {% for prow in preview_rows %}
+                                                    {% if prow[fidx] is defined and prow[fidx] %}
+                                                        {{ prow[fidx] }}{% if not loop.last %}, {% endif %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endfor %}
+
+    <div class="flex items-center justify-between mt-6">
+        <a class="btn btn-ghost" href="{{ url_for('importacao.importar') }}">Voltar</a>
+        <div style="display: flex; gap: var(--space-3);">
+            <button class="btn btn-secondary" type="submit" name="action" value="preview">Ver prévia</button>
+            <button class="btn btn-primary" type="submit" name="action" value="import">Confirmar importação</button>
+        </div>
+    </div>
+</form>
+
+<script>
+function mudouTabela(idx, tabelaKey, sheetName) {
+    var prefix = 'painel_' + idx + '_';
+    document.querySelectorAll('[id^="' + prefix + '"]').forEach(function(p) {
+        p.style.display = 'none';
+        p.querySelectorAll('select, input').forEach(function(el) { el.disabled = true; });
+    });
+
+    if (!tabelaKey) return;
+
+    var painel = document.getElementById('painel_' + idx + '_' + tabelaKey);
+    if (painel) {
+        painel.style.display = 'block';
+        painel.querySelectorAll('select, input').forEach(function(el) { el.disabled = false; });
+    }
+}
+
+function showProgress(message) {
+    var overlay = document.getElementById('progressOverlay');
+    var msg = document.getElementById('progressMessage');
+    if (overlay && msg) {
+        msg.textContent = message || 'Processando...';
+        overlay.style.display = 'flex';
+    }
+}
+
+function hideProgress() {
+    var overlay = document.getElementById('progressOverlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+document.getElementById('formMapear').addEventListener('submit', function(e) {
+    var action = document.activeElement.value;
+    if (action === 'preview' || action === 'import') {
+        showProgress(action === 'import' ? 'Importando dados...' : 'Gerando prévia...');
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[id^="sel_"]').forEach(function(sel) {
+        if (!sel.value) return;
+        var idx = sel.id.replace('sel_', '');
+        mudouTabela(parseInt(idx), sel.value, '');
+    });
+});
+</script>
+{% endblock %}

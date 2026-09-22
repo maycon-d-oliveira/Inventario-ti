@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Colaboradores{% endblock %}
+{% block page_title %}Colaboradores{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><span>Colaboradores</span>{% endblock %}
+{% block page_actions %}
+    <form method="post" action="{{ url_for('colaboradores.sincronizar') }}" style="display:inline;" onsubmit="return confirm('Sincronizar colaboradores do banco OpenEdge?');">
+        <button class="btn btn-primary" type="submit">Sincronizar</button>
+    </form>
+    <a class="btn btn-secondary" href="{{ url_for('colaboradores.exportar_csv') }}">Exportar CSV</a>
+{% endblock %}
+
+{% block content %}
+<!-- Colaboradores: busca por nome ou matrícula -->
+
+<!-- Campo de busca -->
+<section class="card">
+    <form method="get" class="filters-bar search-large" style="max-width: 100%;">
+        <input type="text" class="form-input" name="q" placeholder="Digite nome ou matrícula" value="{{ termo }}" aria-label="Buscar colaborador por nome ou matrícula" style="flex: 1; min-width: 300px;">
+        <button class="btn btn-primary" type="submit">Buscar</button>
+    </form>
+</section>
+
+<!-- Resultados da busca -->
+<section class="card">
+    <div class="table-wrapper">
+        <table class="table" id="colaboradoresTable" data-sortable>
+            <thead>
+                <tr>
+                    <th scope="col">Matrícula</th>
+                    <th scope="col">Nome</th>
+                    <th scope="col">Cargo</th>
+                    <th scope="col">Centro de custo</th>
+                    <th scope="col">Departamento</th>
+                    <th scope="col">Aparelhos vinculados</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for colaborador in colaboradores %}
+                    <tr>
+                        <td class="text-muted text-sm">{{ colaborador.matricula or '-' }}</td>
+                        <td class="font-medium">{{ colaborador.nome or '-' }}</td>
+                        <td>{{ colaborador.cargo or '-' }}</td>
+                        <td>{{ colaborador.centro_custo or '-' }}</td>
+                        <td>{{ colaborador.departamento or '-' }}</td>
+                        <td>
+                            {% if colaborador.aparelhos_vinculados %}
+                                <span class="badge badge-info">{{ colaborador.aparelhos_vinculados }}</span>
+                            {% else %}
+                                <span class="text-muted">Nenhum</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">👤</div>
+                                <h3>{% if termo %}Nenhum colaborador encontrado{% else %}Faça uma busca{% endif %}</h3>
+                                <p>{% if termo %}Tente buscar com outros termos.{% else %}Digite um nome ou matrícula para visualizar colaboradores.{% endif %}</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="pagination">
+    <span class="pagination-info">Mostrando {{ (page-1)*per_page+1 if total > 0 else 0 }} a {{ fim_da_pagina }} de {{ total }} colaboradores</span>
+    <div class="pagination-links">
+        {% if page > 1 %}
+            <a class="btn btn-secondary btn-sm" href="?q={{ termo }}&page={{ page-1 }}">Anterior</a>
+        {% endif %}
+        <span class="text-sm">Página {{ page }} de {{ total_pages }}</span>
+        {% if page < total_pages %}
+            <a class="btn btn-secondary btn-sm" href="?q={{ termo }}&page={{ page+1 }}">Próxima</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

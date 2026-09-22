@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}{% if item %}Editar{% else %}Novo{% endif %} - {{ info.label }}{% endblock %}
+{% block page_title %}{% if item %}Editar Item{% else %}Novo Item{% endif %} - {{ info.label }}{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><a href="{{ url_for('auxiliares.lista_tabelas') }}">Listas Auxiliares</a><span class="separator">/</span><a href="{{ url_for('auxiliares.lista_itens', table_name=table_name) }}">{{ info.label }}</a><span class="separator">/</span><span>{% if item %}Editar{% else %}Novo{% endif %}</span>{% endblock %}
+
+{% block content %}
+<form method="post" action="{{ request.path }}">
+    {% for i in range(info.columns|length) %}
+    {% set col = info.columns[i] %}
+    {% set label = info.labels[i] %}
+    {% set type = info.types[i] %}
+    {% set placeholder = info.placeholders[i] %}
+    <div class="form-group mb-4">
+        <label class="form-label" for="{{ col }}">{{ label }} <span class="required">*</span></label>
+        <input class="form-input" type="{{ type }}" id="{{ col }}" name="{{ col }}" value="{{ item[col]|default('') }}" placeholder="{{ placeholder }}" required>
+    </div>
+    {% endfor %}
+
+    <div class="flex items-center justify-between mt-6">
+        <a class="btn btn-ghost" href="{{ url_for('auxiliares.lista_itens', table_name=table_name) }}">Cancelar</a>
+        <button class="btn btn-primary" type="submit">Salvar</button>
+    </div>
+</form>
+{% endblock %}

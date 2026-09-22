@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% block title %}Chips{% endblock %}
+{% block page_title %}Gestão de chips{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><span>Chips</span>{% endblock %}
+{% block page_actions %}
+    <a class="btn btn-primary" href="{{ url_for('importacao.importar') }}">Importar Planilha</a>
+    <a class="btn btn-secondary" href="{{ url_for('chips.exportar_csv') }}">Exportar CSV</a>
+{% endblock %}
+
+{% block content %}
+<!-- Chips: consulta, vínculo e histórico -->
+
+<p class="text-muted mb-6">{{ total }} registros encontrados.</p>
+
+<!-- Filtros (formulário GET separado) -->
+<section class="card">
+    <form method="get" class="filters-bar" id="filterForm">
+        <input type="text" class="form-input" name="linha" placeholder="Buscar por linha" value="{{ request.args.get('linha', '') }}" aria-label="Buscar por linha">
+        <input type="text" class="form-input" name="chip" placeholder="Buscar por ICCID" value="{{ request.args.get('chip', '') }}" aria-label="Buscar por ICCID">
+        <select class="form-select" name="status" aria-label="Filtrar por status">
+            <option value="">Todos os status</option>
+            {% for item in status_options %}
+                <option value="{{ item.status }}" {% if request.args.get('status') == item.status %}selected{% endif %}>{{ item.status }}</option>
+            {% endfor %}
+        </select>
+        <input type="hidden" name="page" value="1">
+        <button class="btn btn-primary" type="submit">Filtrar</button>
+        {% if request.args %}
+            <a class="btn btn-ghost" href="{{ url_for('chips.lista') }}">Limpar</a>
+        {% endif %}
+    </form>
+</section>
+
+<!-- Formulário de exclusão em massa -->
+<form id="bulkForm" method="post" action="{{ url_for('chips.excluir_multiplos') }}">
+    <!-- Barra de ações em massa -->
+    <div id="bulkToolbarChips" class="bulk-toolbar hidden">
+        <div class="bulk-toolbar-left">
+            <span id="selectedCountChips" class="text-sm font-medium">0 itens selecionados</span>
+        </div>
+        <div class="bulk-toolbar-actions">
+            <button type="button" class="btn btn-sm btn-ghost" onclick="toggleAll('chipsTable')">Selecionar todos</button>
+            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Excluir chips selecionados?');">Excluir selecionados</button>
+        </div>
+    </div>
+
+    <!-- Tabela de chips -->
+    <section class="card">
+        <div class="table-wrapper">
+            <table class="table" id="chipsTable" data-sortable>
+                <thead>
+                    <tr>
+                        <th scope="col" style="width: 40px;"><input type="checkbox" onchange="toggleAllById('chipsTable', this.checked);" aria-label="Selecionar todos"></th>
+                        <th scope="col">ID</th>
+                        <th scope="col">Linha</th>
+                        <th scope="col">Chip (ICCID)</th>
+                        <th scope="col" style="min-width: 150px;">Aparelho Vinculado</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Observações</th>
+                        <th scope="col" class="actions-cell">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for chip in chips %}
+                        <tr>
+                            <td><input type="checkbox" name="ids[]" value="{{ chip.id }}" class="row-checkbox-chip"></td>
+                            <td class="text-muted text-sm">{{ chip.id }}</td>
+                            <td>{{ chip.linha or '-' }}</td>
+                            <td class="font-mono">{{ chip.chip or '-' }}</td>
+                            <td>
+                                {% if chip.aparelho_vinculado %}
+                                    <a href="{{ url_for('inventario.ficha', aparelho_id=chip.aparelho_vinculado.id) }}" class="link-primary">
+                                        #{{ chip.aparelho_vinculado.id }} - {{ chip.aparelho_vinculado.usuario or 'Sem usuário' }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="badge badge-neutral">{{ chip.status or '-' }}</span></td>
+                            <td class="text-sm">{{ chip.observacoes or '-' }}</td>
+                            <td class="actions-cell">
+                                <div class="actions-inner">
+                                {% if not chip.aparelho_vinculado %}
+                                <form method="post" action="{{ url_for('chips.vincular', chip_id=chip.id) }}" class="inline-form">
+                                    <input type="number" name="aparelho_id" placeholder="ID aparelho" aria-label="ID do aparelho" autocomplete="off" style="width:100px!important;min-width:100px!important;max-width:100px!important;height:28px!important;padding:4px 6px!important;font-size:12px!important;box-sizing:border-box!important;display:inline-block!important;vertical-align:middle!important;border:1px solid #cbd5e1!important;border-radius:6px!important;background:#fff!important;">
+                                    <button class="btn btn-secondary btn-sm" type="submit">
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                                        <span class="sr-only">Vincular</span>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <a href="{{ url_for('chips.editar', chip_id=chip.id) }}" class="action-icon" aria-label="Editar chip {{ chip.id }}">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    <span class="sr-only">Editar</span>
+                                </a>
+                                <form method="post" action="{{ url_for('chips.excluir', chip_id=chip.id) }}" style="display:inline;" onsubmit="return confirm('Excluir este chip?');">
+                                    <button type="submit" class="action-icon btn-danger-icon" aria-label="Excluir chip {{ chip.id }}">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                                        <span class="sr-only">Excluir</span>
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('chips.ficha', chip_id=chip.id) }}" class="action-icon" aria-label="Ficha do chip {{ chip.id }}">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    <span class="sr-only">Ficha</span>
+                                </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="8">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">📱</div>
+                                    <h3>Nenhum chip encontrado</h3>
+                                    <p>Tente ajustar os filtros para encontrar chips.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginação -->
+        <div class="pagination">
+            <span class="pagination-info">Mostrando {{ chips|length }} de {{ total }} resultados</span>
+            <div class="pagination-links">
+                {% if page > 1 %}
+                    <a class="btn btn-secondary btn-sm" href="{{ url_for('chips.lista', page=page-1, **pagination_args) }}">Anterior</a>
+                {% endif %}
+                <span class="text-sm">Página {{ page }} de {{ total_pages }}</span>
+                {% if page < total_pages %}
+                    <a class="btn btn-secondary btn-sm" href="{{ url_for('chips.lista', page=page+1, **pagination_args) }}">Próxima</a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</form>
+
+<script>
+    // Toggle all checkboxes by table ID
+    window.toggleAllById = function(tableId, checked) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        table.querySelectorAll('tbody input[type="checkbox"]').forEach(function(cb) {
+            cb.checked = checked;
+        });
+        updateBulkToolbarChips(tableId);
+    };
+
+    // Toggle all checkboxes (invert current state)
+    window.toggleAll = function(tableId) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        var mainCb = table.querySelector('thead input[type="checkbox"]');
+        if (mainCb) {
+            mainCb.checked = !mainCb.checked;
+            toggleAllById(tableId, mainCb.checked);
+        }
+    };
+
+    // Update bulk toolbar visibility for chips table
+    function updateBulkToolbarChips(tableId) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        var checkboxes = table.querySelectorAll('tbody .row-checkbox-chip');
+        var checkedCount = Array.from(checkboxes).filter(function(cb) { return cb.checked; }).length;
+        var toolbar = document.getElementById('bulkToolbarChips');
+        var countSpan = document.getElementById('selectedCountChips');
+
+        if (checkedCount >0) {
+            toolbar.classList.remove('hidden');
+            countSpan.textContent = checkedCount + (checkedCount === 1 ? ' item selecionado' : ' itens selecionados');
+        } else {
+            toolbar.classList.add('hidden');
+        }
+
+        // Update main checkbox state
+        var mainCb = table.querySelector('thead input[type="checkbox"]');
+        if (mainCb) {
+            mainCb.checked = checkedCount === checkboxes.length && checkboxes.length >0;
+            mainCb.indeterminate = checkedCount >0 && checkedCount < checkboxes.length;
+        }
+    }
+
+    // Listen for checkbox changes in the chips table
+    var chipsTable = document.getElementById('chipsTable');
+    if (chipsTable) {
+        chipsTable.addEventListener('change', function(e) {
+            if (e.target.classList.contains('row-checkbox-chip') || e.target === chipsTable.querySelector('thead input[type="checkbox"]')) {
+                updateBulkToolbarChips('chipsTable');
+            }
+        });
+    }
+
+    // Initial check for bulk toolbar
+    updateBulkToolbarChips('chipsTable');
+
+    // Força tamanho do input de vincular (fix autofill do navegador)
+    function fixInputs() {
+        document.querySelectorAll('input[name="aparelho_id"]').forEach(function(input) {
+            input.style.width = '100px';
+            input.style.minWidth = '100px';
+            input.style.maxWidth = '100px';
+            input.style.boxSizing = 'border-box';
+            input.style.height = '28px';
+            input.style.padding = '2px 6px';
+            input.style.fontSize = '12px';
+            input.style.display = 'inline-block';
+            input.style.verticalAlign = 'middle';
+            input.setAttribute('autocomplete', 'off');
+            input.setAttribute('size', '10');
+        });
+    }
+    fixInputs();
+    setTimeout(fixInputs, 100);
+    setTimeout(fixInputs, 500);
+    setTimeout(fixInputs, 1000);
+</script>
+{% endblock %}

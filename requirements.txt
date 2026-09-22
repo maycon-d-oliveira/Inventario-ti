@@ -1,0 +1,10 @@
+Flask==3.1.0
+openpyxl==3.1.5
+psycopg[binary]==3.2.9
+requests==2.32.3
+jaydebeapi
+JPype1==1.5.1
+Flask-Login==0.6.3
+Flask-WTF==1.2.1
+bcrypt==4.2.1
+email_validator==2.2.0

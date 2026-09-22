@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Histórico de Importações{% endblock %}
+{% block page_title %}Histórico de Importações{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><a href="{{ url_for('importacao.importar') }}">Importação</a><span class="separator">/</span><span>Histórico</span>{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-body">
+        <h3 style="margin-top: 0;">Últimas importações</h3>
+
+        {% if logs %}
+        <div class="table-wrapper">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Data/Hora</th>
+                        <th>Usuário</th>
+                        <th>Arquivo</th>
+                        <th>Total</th>
+                        <th>Inseridas</th>
+                        <th>Atualizadas</th>
+                        <th>Ignoradas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.created_at }}</td>
+                        <td>{{ log.usuario }}</td>
+                        <td>{{ log.nome_arquivo }}</td>
+                        <td>{{ log.total_linhas }}</td>
+                        <td style="color: var(--color-success);">{{ log.inseridas }}</td>
+                        <td style="color: var(--color-warning);">{{ log.atualizadas }}</td>
+                        <td style="color: var(--color-danger);">{{ log.ignoradas }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">Nenhuma importação realizada até o momento.</p>
+        {% endif %}
+
+        <a href="{{ url_for('importacao.importar') }}" class="btn btn-primary" style="margin-top: var(--space-4);">
+            Nova importação
+        </a>
+    </div>
+</section>
+{% endblock %}

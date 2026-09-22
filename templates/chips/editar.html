@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block title %}Editar Chip{% endblock %}
+{% block page_title %}Editar Chip{% endblock %}
+{% block breadcrumb %}
+    <a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span>
+    <a href="{{ url_for('chips.lista') }}">Chips</a><span class="separator">/</span>
+    <a href="{{ url_for('chips.ficha', chip_id=chip.id) }}">Ficha #{{ chip.id }}</a><span class="separator">/</span>
+    <span>Editar</span>
+{% endblock %}
+
+{% block page_actions %}
+    <a class="btn btn-secondary" href="{{ url_for('chips.ficha', chip_id=chip.id) }}">← Voltar para ficha</a>
+    <a class="btn btn-primary" href="{{ url_for('chips.lista') }}">← Voltar para Lista</a>
+{% endblock %}
+
+{% block content %}
+<!-- Edição de chip -->
+
+<div class="detail-actions">
+    <a class="btn btn-secondary" href="{{ url_for('chips.ficha', chip_id=chip.id) }}">← Voltar para ficha</a>
+</div>
+
+<!-- Formulário de Edição -->
+<form method="post">
+    <!-- Seção: Dados do Chip -->
+    <details class="card" open>
+        <summary class="card-header">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 9.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            Dados do Chip
+        </summary>
+        <div class="card-body">
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="label">ID</span>
+                    <strong class="value">{{ chip.id }}</strong>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Linha</span>
+                    <input type="text" name="linha" class="form-input font-mono" value="{{ chip.linha or '' }}" required maxlength="20" style="width: 100%;">
+                </div>
+                <div class="detail-item">
+                    <span class="label">ICCID (Chip)</span>
+                    <input type="text" name="chip" class="form-input font-mono" value="{{ chip.chip or '' }}" required maxlength="20" style="width: 100%;">
+                </div>
+                <div class="detail-item">
+                    <span class="label">Status</span>
+                    <select name="status" class="form-select" style="width: 100%;">
+                        <option value="">Sem status</option>
+                        <option value="Ativo" {% if chip.status == 'Ativo' %}selected{% endif %}>Ativo</option>
+                        <option value="Inativo" {% if chip.status == 'Inativo' %}selected{% endif %}>Inativo</option>
+                        <option value="Bloqueado" {% if chip.status == 'Bloqueado' %}selected{% endif %}>Bloqueado</option>
+                        <option value="Cancelado" {% if chip.status == 'Cancelado' %}selected{% endif %}>Cancelado</option>
+                        <option value="Reservado" {% if chip.status == 'Reservado' %}selected{% endif %}>Reservado</option>
+                        <option value="Teste" {% if chip.status == 'Teste' %}selected{% endif %}>Teste</option>
+                    </select>
+                </div>
+                <div class="detail-item" style="grid-column: 1 / -1;">
+                    <span class="label">Observações</span>
+                    <textarea name="observacoes" class="form-textarea" rows="3" maxlength="500" style="width: 100%;">{{ chip.observacoes or '' }}</textarea>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Seção: Informações de Vinculação -->
+    {% if chip.aparelho_vinculado %}
+    <details class="card">
+        <summary class="card-header">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            Vinculado ao Aparelho
+        </summary>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <div style="display: flex; align-items: center;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px;">
+                        <path d="M18 20V10"/>
+                        <path d="M12 20V4"/>
+                        <path d="M6 20v-6"/>
+                    </svg>
+                    <div>
+                        <strong>Aparelho #{{ chip.aparelho_vinculado.id }}</strong><br>
+                        {{ chip.aparelho_vinculado.usuario or 'Sem usuário' }} | {{ chip.aparelho_vinculado.modelo }}
+                    </div>
+                </div>
+            </div>
+            <p class="text-muted">
+                <strong>Atenção:</strong> Alterar os dados da linha ou ICCID pode afetar o vínculo com este aparelho.
+                Se necessário, desvincular o chip primeiro na tela de ficha.
+            </p>
+        </div>
+    </details>
+    {% endif %}
+
+    <!-- Seção: Ações -->
+    <details class="card">
+        <summary class="card-header">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            Salvar Alterações
+        </summary>
+        <div class="card-body">
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <a href="{{ url_for('chips.ficha', chip_id=chip.id) }}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;">
+                        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/>
+                        <polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    Salvar Alterações
+                </button>
+            </div>
+        </div>
+    </details>
+</form>
+
+<!-- Bloco de ajuda -->
+<details class="card">
+    <summary class="card-header">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Dicas de Edição
+    </summary>
+    <div class="card-body">
+        <ul class="help-list">
+            <li><strong>Formatação da linha:</strong> Use o formato completo com DDI + DDD + número (ex: 5521999999999)</li>
+            <li><strong>ICCID:</strong> O número ICCID tem entre 19-20 dígitos e começa com 89 ou 890</li>
+            <li><strong>Status:</strong> Mantenha o status atualizado para facilitar a gestão</li>
+            <li><strong>Vinculado:</strong> Se o chip estiver vinculado a um aparelho, alterar linha/ICCID pode quebrar o vínculo</li>
+        </ul>
+    </div>
+</details>
+
+{% endblock %}

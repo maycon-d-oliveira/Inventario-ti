@@ -1,0 +1,15 @@
+# Mantém finais de linha consistentes entre Windows, Linux e containers.
+* text=auto
+*.py text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.html text eol=lf
+
+# Arquivos binários não devem passar por conversão de texto.
+*.jar binary
+*.png binary
+*.xlsx binary
+*.db binary

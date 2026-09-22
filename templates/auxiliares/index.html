@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Listas Auxiliares{% endblock %}
+{% block page_title %}Listas Auxiliares{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><span>Listas Auxiliares</span>{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-3 gap-4">
+    {% for t in tabelas %}
+    <section class="card">
+        <div class="card-body">
+            <h3 class="mb-2">{{ t.label }}</h3>
+            <p class="text-sm text-muted mb-4">{{ t.count }} item(s) cadastrado(s)</p>
+            <a class="btn btn-primary" href="{{ url_for('auxiliares.lista_itens', table_name=t.name) }}">Gerenciar</a>
+        </div>
+    </section>
+    {% endfor %}
+</div>
+{% endblock %}

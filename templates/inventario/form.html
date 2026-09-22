@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% block title %}{% if aparelho %}Editar aparelho{% else %}Cadastrar novo aparelho{% endif %}{% endblock %}
+{% block page_title %}{% if aparelho %}Editar aparelho #{{ aparelho.id }}{% else %}Cadastrar novo aparelho{% endif %}{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><a href="{{ url_for('inventario.lista') }}">Inventário</a><span class="separator">/</span><span>{% if aparelho %}Editar{% else %}Novo{% endif %}</span>{% endblock %}
+
+{% block content %}
+<!-- Formulário de inventário: cadastro ou edição de aparelho -->
+<p class="form-legend"><span class="required">*</span> Campos obrigatórios</p>
+
+<form class="device-form" method="post" action="{{ request.path }}">
+    {% set values = aparelho if aparelho else {} %}
+
+    <!-- Seção: Geral -->
+    <details class="card" open>
+        <summary class="card-header">Geral</summary>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="linha">Linha <span class="required">*</span></label>
+                    <input class="form-input" type="text" id="linha" name="linha" value="{{ values.linha|default('') }}" required>
+                    <div id="chipInfo" class="form-hint" style="display: none;"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="estab">Estabelecimento <span class="required">*</span></label>
+                    <select class="form-select" id="estab" name="estab" required>
+                        <option value="">-- Selecione --</option>
+                        {% for est in estabelecimentos %}
+                            <option value="{{ est.codigo }}" {% if values.estab == est.codigo %}selected{% endif %}>{{ est.codigo }} - {{ est.descricao }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="tipo_linha">Tipo de linha <span class="required">*</span></label>
+                    <select class="form-select" id="tipo_linha" name="tipo_linha" required>
+                        <option value="">-- Selecione --</option>
+                        {% for tl in tipos_linha %}
+                            <option value="{{ tl.descricao }}" {% if values.tipo_linha == tl.descricao %}selected{% endif %}>{{ tl.descricao }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="status">Status <span class="required">*</span></label>
+                    <select class="form-select" id="status" name="status" required>
+                        <option value="">-- Selecione --</option>
+                        {% for st in status_list %}
+                            <option value="{{ st.descricao }}" {% if values.status == st.descricao %}selected{% endif %}>{{ st.descricao }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="uso">Uso <span class="required">*</span></label>
+                    <select class="form-select" id="uso" name="uso" required>
+                        <option value="">-- Selecione --</option>
+                        {% for us in usos_list %}
+                            <option value="{{ us.descricao }}" {% if values.uso == us.descricao %}selected{% endif %}>{{ us.descricao }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="usuario">Usuário <span class="required">*</span></label>
+                    <input class="form-input" type="text" id="usuario" name="usuario" value="{{ values.usuario|default('') }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="nivel">Nível <span class="required">*</span></label>
+                    <select class="form-select" id="nivel" name="nivel" required>
+                        <option value="">-- Selecione --</option>
+                        {% for nv in niveis_list %}
+                            <option value="{{ nv.descricao }}" {% if values.nivel == nv.descricao %}selected{% endif %}>{{ nv.descricao }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Seção: Responsável -->
+    <details class="card">
+        <summary class="card-header">Responsável</summary>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="nr_cartao">Número do cartão <span class="required">*</span></label>
+                    <input class="form-input" type="number" id="nr_cartao" name="nr_cartao" value="{{ values.nr_cartao|default('') }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="responsavel">Responsável <span class="required">*</span></label>
+                    <input class="form-input" type="text" id="responsavel" name="responsavel" value="{{ values.responsavel|default('') }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="cargo">Cargo <span class="required">*</span></label>
+                    <input class="form-input" type="text" id="cargo" name="cargo" value="{{ values.cargo|default('') }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="situacao">Situação</label>
+                    <input class="form-input" type="text" id="situacao" name="situacao" value="{{ values.situacao|default('') }}" readonly>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Seção: Dispositivo -->
+    <details class="card">
+        <summary class="card-header">Dispositivo</summary>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label class="form-label" for="mdm_id">MDM ID</label>
+                    <input class="form-input" type="number" id="mdm_id" name="mdm_id" value="{{ values.mdm_id|default('') }}" min="1" placeholder="Informe o MDM ID">
+                    <span class="form-hint" id="mdmHelp">Se deixado vazio, preencha os campos abaixo manualmente.</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="marca">Marca <span class="required">*</span></label>
+                    <input class="form-input" type="text" id="marca" name="marca" value="{{ values.marca|default('') }}" required data-require-mdm="true">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="modelo">Modelo <span class="required">*</span></label>
+                    <input class="form-input" type="text" id="modelo" name="modelo" value="{{ values.modelo|default('') }}" required data-require-mdm="true">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="imei">IMEI <span class="required">*</span></label>
+                    <input class="form-input" type="text" id="imei" name="imei" value="{{ values.imei|default('') }}" pattern="\d{15}" title="15 dígitos numéricos" required data-require-mdm="true">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="mac_wifi">MAC Wi-Fi <span class="required">*</span></label>
+                    <input class="form-input" type="text" id="mac_wifi" name="mac_wifi" value="{{ values.mac_wifi|default('') }}" pattern="^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$" title="Formato AA:BB:CC:DD:EE:FF" required data-require-mdm="true">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="serial">Serial <span class="required">*</span></label>
+                    <input class="form-input" type="text" id="serial" name="serial" value="{{ values.serial|default('') }}" required data-require-mdm="true">
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Seção: Observações -->
+    <details class="card">
+        <summary class="card-header">Observações</summary>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label class="form-label" for="observacoes">Observações</label>
+                    <textarea class="form-textarea" id="observacoes" name="observacoes" rows="4" placeholder="Detalhes adicionais...">{{ values.observacoes|default('') }}</textarea>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Ações do formulário -->
+    <div class="flex items-center justify-between mt-6">
+        <a class="btn btn-ghost" href="{{ url_for('inventario.lista') }}">Cancelar</a>
+        <button class="btn btn-primary" type="submit">Salvar</button>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nrCartaoInput = document.getElementById('nr_cartao');
+    if (!nrCartaoInput) return;
+
+    nrCartaoInput.addEventListener('blur', function() {
+        const nrCartao = this.value.trim();
+        if (!nrCartao) return;
+
+        fetch(`/colaboradores/api/buscar-por-cartao/${encodeURIComponent(nrCartao)}`)
+            .then(response => response.json())
+            .then(data => {
+                // Fill responsavel field with nome
+                const responsavelInput = document.getElementById('responsavel');
+                if (responsavelInput) {
+                    responsavelInput.value = data.nome || '';
+                }
+
+                // Fill cargo field
+                const cargoInput = document.getElementById('cargo');
+                if (cargoInput) {
+                    cargoInput.value = data.cargo || '';
+                }
+
+                // Select estabelecimento in dropdown
+                const estabSelect = document.getElementById('estab');
+                if (estabSelect && data.estabelecimento) {
+                    for (let option of estabSelect.options) {
+                        if (option.value === data.estabelecimento) {
+                            option.selected = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Fill situacao field
+                const situacaoInput = document.getElementById('situacao');
+                if (situacaoInput && data.situacao) {
+                    situacaoInput.value = data.situacao;
+                }
+            })
+            .catch(error => console.error('Erro ao buscar colaborador:', error));
+    });
+
+    // Busca chip automaticamente quando a linha perde o foco
+    const linhaInput = document.getElementById('linha');
+    const chipInfoDiv = document.getElementById('chipInfo');
+    if (linhaInput && chipInfoDiv) {
+        linhaInput.addEventListener('blur', function() {
+            const linha = this.value.trim();
+            chipInfoDiv.style.display = 'none';
+            chipInfoDiv.innerHTML = '';
+
+            if (!linha) return;
+
+            fetch(`/chips/api/buscar-por-linha/${encodeURIComponent(linha)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.found) {
+                        chipInfoDiv.innerHTML = `Chip vinculado: <strong>${data.chip || 'N/A'}</strong> (Status: ${data.status})`;
+                        chipInfoDiv.style.display = 'block';
+                    } else {
+                        chipInfoDiv.innerHTML = 'Nenhum chip encontrado para esta linha. Um novo chip será criado automaticamente ao salvar.';
+                        chipInfoDiv.style.display = 'block';
+                    }
+                })
+                .catch(error => console.error('Erro ao buscar chip:', error));
+        });
+    }
+});
+</script>
+{% endblock %}

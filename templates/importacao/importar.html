@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Importação{% endblock %}
+{% block page_title %}Importação de dados{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><span>Importação</span>{% endblock %}
+
+{% block content %}
+<!-- Progress overlay -->
+<div id="progressOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+    <div class="card" style="padding: var(--space-8); text-align: center; min-width: 300px;">
+        <div style="margin-bottom: var(--space-4);">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"><path d="M12 2v4m6.364 1.636l-1.414 1.414M20 12h-4m-12 0h4m4.364-1.636l1.414-1.414M12 16a4 4 0 100-8 4 4 0 100 8z"/></svg>
+        </div>
+        <p id="progressMessage" style="margin: 0; font-size: 1.125rem; font-weight: 500;">Enviando arquivo...</p>
+    </div>
+</div>
+<style>
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+
+<!-- Importação: envio de planilha Excel para o banco -->
+
+<section class="card" style="max-width: 640px; margin: 0 auto;">
+    <div class="card-body">
+        <h3 style="margin-top:0;">Enviar planilha</h3>
+        <p class="text-muted mb-6">Selecione a planilha <strong>INVENTÁRIO CELULARES.xlsx</strong> para importar os dados.</p>
+
+        <form method="post" enctype="multipart/form-data" class="form-grid" style="grid-template-columns: 1fr;" id="uploadForm">
+            <div class="form-group full-width">
+                <label class="form-label" for="arquivo">Arquivo Excel</label>
+                <input class="form-input" type="file" id="arquivo" name="arquivo" accept=".xlsx,.xls" required>
+                <span class="form-hint">Formatos aceitos: .xlsx, .xls. Tamanho máximo: 5MB.</span>
+            </div>
+            <div class="full-width" style="display: flex; justify-content: flex-end;">
+                <button class="btn btn-primary" type="submit">Próximo: Mapear</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<div class="text-center mt-4" style="margin:auto; width: 670px;">
+    <a href="{{ url_for('importacao.download_template') }}" class="btn btn-ghost" style="text-decoration: none;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Baixar planilha modelo
+    </a>
+</div>
+
+<section class="card" style="max-width: 640px; margin: var(--space-6) auto 0;">
+    <div class="card-body">
+        <h3 style="margin-top:0;">Instruções</h3>
+        <ul style="padding-left: var(--space-5); color: var(--color-primary-soft); font-size: var(--text-sm); line-height: var(--leading-relaxed);">
+            <li>A planilha deve conter as abas: <strong>Inventário</strong>, <strong>Chips</strong>, <strong>Estoque Aparelhos</strong>, <strong>Celulares devolvidos</strong>, <strong>Descarte Eletrônico</strong>, <strong>VW_COLABORADOR</strong> (ou <strong>Funcionários</strong>), <strong>Grupos WhatsApp</strong>.</li>
+            <li>Na próxima etapa você escolherá qual aba preencherá cada tabela.</li>
+            <li>Depois, você mapeará as colunas da planilha para os campos do banco.</li>
+            <li>A importação limpa os dados atuais antes de inserir os novos registros.</li>
+        </ul>
+    </div>
+</section>
+
+<script>
+document.getElementById('uploadForm').addEventListener('submit', function() {
+    document.getElementById('progressOverlay').style.display = 'flex';
+});
+</script>
+{% endblock %}

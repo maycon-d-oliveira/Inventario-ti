@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block breadcrumb %}<span>Dashboard</span>{% endblock %}
+
+{% block content %}
+<!-- Dashboard: visao geral com indicadores, graficos e alertas -->
+
+<!-- Alertas inteligentes -->
+{% if alertas %}
+<section class="mb-6">
+    {% for alerta in alertas %}
+        <div class="alert alert-{{ 'error' if alerta.tipo == 'error' else ('warning' if alerta.tipo == 'warning' else 'info') }}" role="alert" style="margin-bottom: var(--space-3);">
+            <div style="flex: 1;">
+                <strong>{{ alerta.titulo }}</strong>
+                {% if alerta.itens %}
+                    <ul style="margin: var(--space-2) 0 0 0; padding-left: var(--space-6); font-size: var(--text-sm);">
+                        {% for item in alerta.itens %}
+                            <li>
+                                {% if alerta.tipo == 'error' and item.usuario %}
+                                    {{ item.usuario }} — {{ item.modelo or 'Sem modelo' }}
+                                {% elif 'chip' in alerta.titulo %}
+                                    {{ item.linha or 'Sem linha' }} — {{ item.chip }}
+                                {% elif 'atualizacao' in alerta.titulo %}
+                                    ID {{ item.id }}: {{ item.usuario or 'Sem usuario' }} — {{ item.updated_at[:10] if item.updated_at else 'Nunca' }}
+                                {% elif 'multiplos' in alerta.titulo %}
+                                    {{ item.usuario }}: {{ item.qtd }} aparelhos ({{ item.modelos }})
+                                {% else %}
+                                    {{ item }}
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            <a href="{{ alerta.link }}" class="btn btn-sm btn-ghost" style="flex-shrink: 0;">{{ alerta.link_texto }}</a>
+        </div>
+    {% endfor %}
+</section>
+{% endif %}
+
+<!-- Cards de indicadores -->
+<section class="stat-grid">
+    <article class="card stat-card card-hover">
+        <div class="stat-card-label">Aparelhos em uso</div>
+        <div class="stat-card-value">{{ totais.aparelhos_em_uso }}</div>
+    </article>
+    <article class="card stat-card card-hover">
+        <div class="stat-card-label">Em estoque</div>
+        <div class="stat-card-value">{{ totais.estoque }}</div>
+    </article>
+    <article class="card stat-card card-hover">
+        <div class="stat-card-label">Chips ativos</div>
+        <div class="stat-card-value">{{ totais.chips_ativos }}</div>
+    </article>
+</section>
+
+<!-- Graficos Chart.js -->
+<section class="grid-two" style="margin-bottom: var(--space-8);">
+    <article class="card">
+        <h3>Aparelhos por Status</h3>
+        <div style="position: relative; height: 250px;">
+            <canvas id="chartStatus"></canvas>
+        </div>
+    </article>
+
+    <article class="card">
+        <h3>Aparelhos por Estabelecimento</h3>
+        <div style="position: relative; height: 250px;">
+            <canvas id="chartEstab"></canvas>
+        </div>
+    </article>
+
+    <article class="card">
+        <h3>Evolucao (Ultimos 30 dias)</h3>
+        <div style="position: relative; height: 250px;">
+            <canvas id="chartMov"></canvas>
+        </div>
+    </article>
+
+    <article class="card">
+        <h3>Top 10 Marcas</h3>
+        <div style="position: relative; height: 250px;">
+            <canvas id="chartMarca"></canvas>
+        </div>
+    </article>
+</section>
+
+<!-- Tabelas resumo -->
+<section class="grid-two">
+    <article class="card">
+        <h3>Aparelhos por estabelecimento</h3>
+        <div class="table-wrapper">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Estabelecimento</th>
+                        <th scope="col" style="text-align: right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in aparelhos_por_estab %}
+                        <tr>
+                            <td>{{ item.estab }}</td>
+                            <td style="text-align: right;">{{ item.total }}</td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="2" style="text-align: center; color: var(--color-muted);">Nenhum dado disponivel.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <article class="card">
+        <h3>Aparelhos por status</h3>
+        <div class="table-wrapper">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Status</th>
+                        <th scope="col" style="text-align: right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in aparelhos_por_status %}
+                        <tr>
+                            <td><span class="badge badge-neutral">{{ item.status }}</span></td>
+                            <td style="text-align: right;">{{ item.total }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+
+<!-- Ultimas atualizacoes -->
+<section class="card" style="margin-top: var(--space-8);">
+    <h3>Ultimas atualizacoes</h3>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Area</th>
+                    <th scope="col">Acao</th>
+                    <th scope="col">Descricao</th>
+                    <th scope="col">Data</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in ultimas_atualizacoes %}
+                    <tr>
+                        <td>{{ item.entidade }}</td>
+                        <td><span class="badge badge-info">{{ item.acao }}</span></td>
+                        <td>{{ item.descricao }}</td>
+                        <td class="text-muted text-sm">{{ item.created_at }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="4" style="text-align: center; color: var(--color-muted);">Ainda nao ha movimentacoes registradas.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- Scripts dos Graficos -->
+<script>
+(function() {
+    var colors = {
+        primary: '#6366F1',
+        primaryLight: '#EEF2FF',
+        success: '#10B981',
+        warning: '#F59E0B',
+        danger: '#EF4444',
+        muted: '#64748B',
+        border: '#E2E8F0',
+    };
+
+    // 1. Grafico: Aparelhos por Status (Doughnut)
+    var ctxStatus = document.getElementById('chartStatus').getContext('2d');
+    var statusLabels = [{% for item in aparelhos_por_status %}'{{ item.status }}'{% if not loop.last %}, {% endif %}{% endfor %}];
+    var statusData = [{% for item in aparelhos_por_status %}{{ item.total }}{% if not loop.last %}, {% endif %}{% endfor %}];
+    new Chart(ctxStatus, {
+        type: 'doughnut',
+        data: {
+            labels: statusLabels,
+            datasets: [{ data: statusData, backgroundColor: [colors.primary, colors.warning, colors.danger, colors.success], borderWidth: 2, borderColor: '#FFFFFF' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyle: 'circle' } } } }
+    });
+
+    // 2. Grafico: Aparelhos por Estabelecimento (Bar)
+    var ctxEstab = document.getElementById('chartEstab').getContext('2d');
+    var estabLabels = [{% for item in aparelhos_por_estab %}'{{ item.estab }}'{% if not loop.last %}, {% endif %}{% endfor %}];
+    var estabData = [{% for item in aparelhos_por_estab %}{{ item.total }}{% if not loop.last %}, {% endif %}{% endfor %}];
+    new Chart(ctxEstab, {
+        type: 'bar',
+        data: { labels: estabLabels, datasets: [{ label: 'Total', data: estabData, backgroundColor: colors.primary, borderRadius: 4 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: colors.border } }, x: { grid: { display: false } } } }
+    });
+
+    // 3. Grafico: Evolucao de Movimentacoes (Line)
+    var ctxMov = document.getElementById('chartMov').getContext('2d');
+    var movLabels = [{% for label in movimentacoes_labels %}'{{ label }}'{% if not loop.last %}, {% endif %}{% endfor %}];
+    var movData = [{% for val in movimentacoes_data %}{{ val }}{% if not loop.last %}, {% endif %}{% endfor %}];
+    new Chart(ctxMov, {
+        type: 'line',
+        data: { labels: movLabels, datasets: [{ label: 'Movimentacoes', data: movData, borderColor: colors.primary, backgroundColor: colors.primaryLight, fill: true, tension: 0.3, pointRadius: 2, pointHoverRadius: 5 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: colors.border }, ticks: { stepSize: 1 } }, x: { grid: { display: false }, ticks: { maxRotation: 45 } } } }
+    });
+
+    // 4. Grafico: Aparelhos por Marca (Horizontal Bar)
+    var ctxMarca = document.getElementById('chartMarca').getContext('2d');
+    var marcaLabels = [{% for item in aparelhos_por_marca %}'{{ item.marca }}'{% if not loop.last %}, {% endif %}{% endfor %}];
+    var marcaData = [{% for item in aparelhos_por_marca %}{{ item.total }}{% if not loop.last %}, {% endif %}{% endfor %}];
+    new Chart(ctxMarca, {
+        type: 'bar',
+        data: { labels: marcaLabels, datasets: [{ label: 'Total', data: marcaData, backgroundColor: colors.success, borderRadius: 4 }] },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { color: colors.border } }, y: { grid: { display: false } } } }
+    });
+})();
+</script>
+{% endblock %}

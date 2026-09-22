@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}{% if is_edit %}Editar Usuário{% else %}Novo Usuário{% endif %}{% endblock %}
+{% block page_title %}{% if is_edit %}Editar Usuário #{{ usuario.id }}{% else %}Cadastrar Novo Usuário{% endif %}{% endblock %}
+
+{% block breadcrumb %}
+<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span>
+<a href="{{ url_for('usuarios.lista') }}">Usuários</a><span class="separator">/</span>
+<span>{% if is_edit %}Editar{% else %}Novo{% endif %}</span>
+{% endblock %}
+
+{% block content %}
+<div class="detail-actions" style="margin-bottom: var(--space-4);">
+    <a class="btn btn-secondary" href="{{ url_for('usuarios.lista') }}">← Voltar para lista</a>
+</div>
+
+<section class="card">
+    <div class="card-header">{% if is_edit %}Dados Cadastrais do Usuário{% else %}Formulário de Cadastro{% endif %}</div>
+    <div class="card-body">
+        
+        <form method="post" action="{% if is_edit %}{{ url_for('usuarios.editar', usuario_id=usuario.id) }}{% else %}{{ url_for('usuarios.novo') }}{% endif %}" style="display: flex; flex-direction: column; gap: var(--space-4);">
+            
+            <div class="form-group">
+                <label class="form-label" for="username">Nome de Usuário <span style="color: #e53e3e;">*</span></label>
+                <input class="form-input" type="text" id="username" name="username" value="{{ usuario.username if usuario else '' }}" required style="width: 100%; max-width: 500px;">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">E-mail Corporativo <span style="color: #e53e3e;">*</span></label>
+                <input class="form-input" type="email" id="email" name="email" value="{{ usuario.email if usuario else '' }}" required style="width: 100%; max-width: 500px;">
+            </div>
+
+            {% if not is_edit %}
+            <div class="form-group">
+                <label class="form-label" for="password">Senha Inicial <span style="color: #e53e3e;">*</span></label>
+                <input class="form-input" type="password" id="password" name="password" required style="width: 100%; max-width: 500px;" placeholder="Defina uma senha para o primeiro login">
+            </div>
+            {% endif %}
+
+            <div class="form-group" style="margin-top: var(--space-2); display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" id="is_admin" name="is_admin" {% if usuario and usuario.is_admin %}checked{% endif %} style="width: 18px; height: 18px; cursor: pointer;">
+                <label for="is_admin" class="form-label" style="margin-bottom: 0; cursor: pointer; font-weight: 600;">Definir este usuário como Administrador</label>
+            </div>
+            <p class="text-sm text-muted" style="margin-top: -10px; margin-left: 28px;">Administradores possuem permissões completas para cadastrar, editar, excluir inventários e gerenciar outros colaboradores do sistema.</p>
+
+            <div class="form-actions" style="margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border-color);">
+                <button type="submit" class="btn btn-primary">{% if is_edit %}Salvar Alterações{% else %}Cadastrar Usuário{% endif %}</button>
+                <a href="{{ url_for('usuarios.lista') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

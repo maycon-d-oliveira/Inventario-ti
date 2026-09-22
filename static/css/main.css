@@ -1,0 +1,525 @@
+/*
+  main.css — Estilos específicos de páginas
+  Complementa o design-system.css
+*/
+
+/* === COMPONENTES ESPECÍFICOS === */
+
+/* Detalhes/Collapse para formulários */
+details.card {
+  margin-bottom: var(--space-6);
+}
+
+/* Sidebar logo */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+.sidebar-logo-img {
+  height: 80px;
+  width: auto;
+  display: block;
+}
+
+details.card summary {
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-primary);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  transition: background var(--transition-fast);
+}
+
+details.card summary:hover {
+  background: var(--color-border);
+}
+
+details.card[open] summary {
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+details.card summary::before {
+  content: "+";
+  display: inline-block;
+  margin-right: var(--space-2);
+  font-weight: var(--font-bold);
+  transition: transform var(--transition-fast);
+}
+
+details.card[open] summary::before {
+  content: "−";
+}
+
+details.card .card-body {
+  padding: var(--space-6);
+}
+
+/* Formulário de dispositivo */
+.device-form {
+  max-width: 100%;
+}
+
+/* Required fields legend */
+.form-legend {
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+  margin-bottom: var(--space-6);
+}
+
+.form-legend .required {
+  color: var(--color-danger);
+  margin-right: 2px;
+}
+
+/* === TABELA: AÇÕES === */
+.table .actions-cell {
+  text-align: right;
+  padding: var(--space-3) var(--space-4);
+  vertical-align: middle;
+}
+
+/* Ações na tabela de auxiliares */
+.auxiliares-lista .actions-cell {
+  width: 80px;
+  min-width: 80px;
+}
+
+/* Wrapper para alinhar ações na célula */
+.actions-inner {
+  display: block;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Garante tamanho do input de vincular em qualquer contexto */
+.actions-cell input[name="aparelho_id"],
+.actions-inner input[name="aparelho_id"] {
+  width: 100px !important;
+  min-width: 100px !important;
+  max-width: 100px !important;
+  height: 28px !important;
+  padding: 2px 6px !important;
+  box-sizing: border-box !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+  font-size: 12px !important;
+}
+
+/* Action icons (replace text links) */
+.action-icon {
+  display: inline-block;
+  vertical-align: middle;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  padding: 0;
+  font-family: var(--font-sans);
+  margin-left: var(--space-1);
+}
+
+.action-icon:first-child {
+  margin-left: 0;
+}
+
+.action-icon svg {
+  vertical-align: middle;
+}
+
+/* Action icon in topbar (page actions) */
+.topbar-actions .action-icon {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+}
+
+.topbar-actions .action-icon:hover {
+  background: var(--color-surface);
+  border-color: var(--color-accent);
+}
+
+.action-icon:hover {
+  background: var(--color-accent-light);
+  color: var(--color-accent-hover);
+}
+
+.action-icon.btn-danger-icon {
+  color: var(--color-danger);
+}
+
+.action-icon.btn-danger-icon:hover {
+  background: var(--color-danger-light);
+  color: #DC2626;
+}
+
+/* Link button (kept for compatibility, can be removed later) */
+.link-button {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  cursor: pointer;
+  padding: var(--space-1);
+  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  transition: color var(--transition-fast);
+}
+
+.link-button:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}
+
+/* === FILTROS === */
+.filters-bar {
+  padding: var(--space-4) var(--space-6);
+}
+
+/* === TABELA: CÉLULAS TRUNCADAS === */
+.truncate-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* === MOVIMENTAÇÃO: FORMULÁRIO INLINE NA TABELA === */
+.table .inline-form {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  vertical-align: middle;
+}
+
+.table .inline-form .form-input {
+  width: 100px !important;
+  min-width: 100px !important;
+  max-width: 100px !important;
+  height: auto !important;
+  padding: var(--space-1) var(--space-2) !important;
+  font-size: var(--text-xs) !important;
+  box-sizing: border-box !important;
+  flex: none !important;
+  display: inline-block !important;
+}
+
+/* Força largura no autofill do navegador */
+.table .inline-form .form-input:-webkit-autofill,
+.table .inline-form .form-input:-webkit-autofill:hover,
+.table .inline-form .form-input:-webkit-autofill:focus {
+  width: 100px !important;
+  min-width: 100px !important;
+  max-width: 100px !important;
+  height: auto !important;
+  padding: var(--space-1) var(--space-2) !important;
+  font-size: var(--text-xs) !important;
+  box-sizing: border-box !important;
+}
+
+/* === DASHBOARD: TABELAS RESUMO === */
+.card table {
+  margin: 0;
+}
+
+.card > h3 {
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-primary);
+  background: var(--color-surface);
+  margin: 0;
+}
+
+/* === PÁGINA: FICHA (DETAIL) === */
+.detail-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+/* === PÁGINA: BUSCA COLABORADORES === */
+.search-large {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.search-large .form-input {
+  font-size: var(--text-lg);
+  padding: var(--space-3) var(--space-4);
+}
+
+/* === PAGINAÇÃO === */
+.pagination {
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+/* === BARRA DE AÇÕES EM MASSA === */
+.bulk-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-accent-light);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.bulk-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.bulk-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* === LOADING STATE PARA BOTÕES === */
+.btn-loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.btn-loading::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  top: 50%;
+  left: 50%;
+  margin: -7px 0 0 -7px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #FFFFFF;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+.combobox-container {
+    position: relative;
+    width: 100%;
+}
+
+.combobox-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.combobox-input {
+    width: 100%;
+    padding: 8px 40px 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+}
+
+.combobox-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+}
+
+.combobox-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: var(--text-muted);
+}
+
+.combobox-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-top: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
+    z-index: 1000;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.combobox-dropdown.active {
+    display: block;
+}
+
+.combobox-search {
+    padding: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.combobox-filter {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.combobox-list {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.combobox-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.combobox-item:hover {
+    background-color: var(--bg-light, #f7fafc);
+}
+
+.combobox-item.selected {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.combobox-item-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.combobox-item-id {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-left: 8px;
+}
+
+.selected-aparelho {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background-color: var(--bg-light, #f7fafc);
+    border-radius: 6px;
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* === RESPONSIVO: AJUSTES === */
+@media (max-width: 768px) {
+  .table .inline-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .table .inline-form .form-input {
+    width: 100%;
+  }
+
+  .detail-actions {
+    flex-direction: column;
+  }
+
+  .detail-actions .btn {
+    width: 100%;
+  }
+
+  /* Filtros em mobile: inputs ocupam largura total */
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filters-bar .form-input,
+  .filters-bar .form-select {
+    width: 100% !important;
+    min-width: unset !important;
+  }
+
+  /* Barra de ações em massa em mobile */
+  .bulk-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    position: sticky;
+    bottom: var(--space-4);
+    z-index: 10;
+    box-shadow: var(--shadow-md);
+  }
+
+  .bulk-toolbar-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  /* Ações na tabela: ícones menores em mobile */
+  .action-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .action-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Paginação em mobile */
+  .pagination {
+    flex-direction: column;
+    gap: var(--space-3);
+    align-items: flex-start;
+  }
+
+  .pagination-links {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Ajuste no topbar para mobile */
+  .topbar {
+    padding: 0 var(--space-4);
+  }
+
+  .topbar-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  /* Busca rápida em mobile */
+  input[data-table-filter] {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}

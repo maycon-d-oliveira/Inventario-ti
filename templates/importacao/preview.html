@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Prévia da Importação{% endblock %}
+{% block page_title %}Prévia da Importação{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><a href="{{ url_for('importacao.importar') }}">Importação</a><span class="separator">/</span><span>Prévia</span>{% endblock %}
+
+{% block content %}
+<!-- Prévia da importação -->
+<section class="card">
+    <div class="card-body">
+        <h3 style="margin-top: 0;">Resumo da importação</h3>
+
+        <div class="stat-grid">
+            <article class="card stat-card">
+                <div class="stat-card-label">Total de linhas</div>
+                <div class="stat-card-value">{{ stats.total_linhas }}</div>
+            </article>
+            <article class="card stat-card" style="border-left: 3px solid var(--color-success);">
+                <div class="stat-card-label">Novas (inseridas)</div>
+                <div class="stat-card-value" style="color: var(--color-success);">{{ stats.inseridas }}</div>
+            </article>
+            <article class="card stat-card" style="border-left: 3px solid var(--color-warning);">
+                <div class="stat-card-label">Duplicatas (atualizadas)</div>
+                <div class="stat-card-value" style="color: var(--color-warning);">{{ stats.atualizadas }}</div>
+            </article>
+            <article class="card stat-card" style="border-left: 3px solid var(--color-danger);">
+                <div class="stat-card-label">Erros (ignoradas)</div>
+                <div class="stat-card-value" style="color: var(--color-danger);">{{ stats.ignoradas }}</div>
+            </article>
+        </div>
+
+        {% if stats.detalhes_erros %}
+        <h4 style="margin-top: var(--space-6);">Erros encontrados</h4>
+        <div class="table-wrapper">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Linha</th>
+                        <th>Aba</th>
+                        <th>IMEI</th>
+                        <th>Linha Tel.</th>
+                        <th>Erro</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for erro in stats.detalhes_erros[:20] %}
+                    <tr>
+                        <td>{{ erro.num_linha }}</td>
+                        <td>{{ erro.aba }}</td>
+                        <td style="font-family: monospace;">{{ erro.imei or '-' }}</td>
+                        <td style="font-family: monospace;">{{ erro.telefone or '-' }}</td>
+                        <td style="color: var(--color-danger);">{{ erro.erro }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if stats.detalhes_erros|length > 20 %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-muted);">
+                            ... e mais {{ stats.detalhes_erros|length - 20 }} erros
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <form method="post" style="margin-top: var(--space-6); display: flex; gap: var(--space-3);">
+            <input type="hidden" name="action" value="import">
+            <button type="submit" class="btn btn-primary" {% if stats.ignoradas > 0 %}disabled{% endif %}>
+                Confirmar importação
+            </button>
+            <a href="{{ url_for('importacao.mapear') }}" class="btn btn-ghost">
+                Voltar
+            </a>
+        </form>
+
+        {% if stats.ignoradas > 0 %}
+        <a href="{{ url_for('importacao.download_erros') }}" class="btn btn-secondary" style="margin-top: var(--space-3);">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Baixar relatório de erros (Excel)
+        </a>
+        <p class="text-sm text-muted mt-3">
+            Corrija os erros antes de importar.
+        </p>
+        {% elif stats.inseridas + stats.atualizadas > 0 %}
+        <p class="text-sm text-muted mt-3">
+            Linhas válidas: {{ stats.inseridas + stats.atualizadas }}
+        </p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

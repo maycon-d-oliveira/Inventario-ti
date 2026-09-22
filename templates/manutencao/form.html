@@ -1,0 +1,422 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if editar %}Editar{% elif preenchido %}Manutenção para{% else %}Nova{% endif %} Manutenção{% endblock %}
+{% block page_title %}{% if editar %}Editar Manutenção{% elif preenchido %}Manutenção para Aparelho{% else %}Nova Manutenção{% endif %}{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><a href="{{ url_for('manutencao.lista') }}">Controle de Manutenção</a><span class="separator">/</span><span>{% if editar %}Editar{% elif preenchido %}Novo Registro{% else %}Nova{% endif %}</span>{% endblock %}
+
+{% block content %}
+<form method="POST" action="{% if editar %}{{ url_for('manutencao.editar', id=manutencao.id) }}{% elif preenchido %}{{ url_for('manutencao.nova_para_aparelho', aparelho_id=aparelho.id) }}{% else %}{{ url_for('manutencao.nova') }}{% endif %}">
+    <details class="card" open>
+        <summary class="card-header">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+            Dados do Aparelho
+        </summary>
+        <div class="card-body">
+            {% if (preenchido or editar) and aparelho %}
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="label">ID PULSUS</span>
+                        <strong class="value">{{ aparelho.mdm_id | default('') or '-' }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">IMEI</span>
+                        <strong class="value font-mono">{{ aparelho.imei | default('') or '-' }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Marca</span>
+                        <strong class="value">{{ aparelho.marca | default('') or '-' }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Modelo</span>
+                        <strong class="value">{{ aparelho.modelo | default('') or aparelho.modelo_mdm | default('') or '-' }}</strong>
+                    </div>
+                </div>
+                {% if not editar %}
+                    <input type="hidden" name="aparelho_id" value="{{ aparelho.id }}">
+                {% endif %}
+            {% else %}
+                <div class="form-group">
+                    <label class="form-label" for="aparelho_id">Aparelho</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text"
+                               id="aparelho_selecionado"
+                               class="form-input"
+                               placeholder="Clique para selecionar um aparelho..."
+                               readonly
+                               style="flex: 1;">
+                        <button type="button"
+                                class="btn btn-primary"
+                                onclick="abrirModalAparelhos()">
+                            Selecionar
+                        </button>
+                        <input type="hidden" id="aparelho_id" name="aparelho_id" required>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </details>
+
+    <details class="card" open>
+        <summary class="card-header">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Abertura
+        </summary>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="problema_reportado">Problema Reportado <span class="required">*</span></label>
+                    <textarea class="form-textarea" id="problema_reportado" name="problema_reportado" rows="3" required>{% if manutencao %}{{ manutencao.problema_reportado | default('') }}{% endif %}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="usuario">Usuário <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="usuario" name="usuario" required value="{% if manutencao %}{{ manutencao.usuario | default('') }}{% elif aparelho %}{{ aparelho.usuario | default('') }}{% endif %}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="centro_custo">Centro de Custo</label>
+                    <input type="text" class="form-input" id="centro_custo" name="centro_custo" value="{% if manutencao %}{{ manutencao.centro_custo | default('') }}{% elif aparelho %}{{ aparelho.centro_custo | default('') }}{% endif %}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="aprovador">Aprovador <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="aprovador" name="aprovador" required value="{% if manutencao %}{{ manutencao.aprovador | default('') }}{% endif %}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="estab">Estabelecimento</label>
+                    <select class="form-select" id="estab" name="estab">
+                        <option value="">Selecione</option>
+                        {% for est in estabelecimentos %}
+                            <option value="{{ est.codigo }}" {% if (manutencao and manutencao.estab == est.codigo) or (aparelho and aparelho.estab == est.codigo) %}selected{% endif %}>{{ est.codigo }} - {{ est.descricao }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="empresa_suporte">Empresa/Suporte <span class="required">*</span></label>
+                    <select class="form-select" id="empresa_suporte" name="empresa_suporte" required>
+                        <option value="">Selecione</option>
+                        {% for emp in empresas_suporte %}
+                            <option value="{{ emp.descricao }}" {% if manutencao and manutencao.empresa_suporte == emp.descricao %}selected{% endif %}>{{ emp.descricao }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="numero_chamado">Número do Chamado</label>
+                    <input type="text" class="form-input" id="numero_chamado" name="numero_chamado" value="{% if manutencao %}{{ manutencao.numero_chamado | default('') }}{% endif %}">
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <details class="card">
+        <summary class="card-header">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+            Envio
+        </summary>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="data_envio">Data de Envio</label>
+                    <input type="date" class="form-input" id="data_envio" name="data_envio" value="{% if manutencao %}{{ manutencao.data_envio or '' }}{% endif %}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="nf_envio">NF de Envio</label>
+                    <input type="text" class="form-input" id="nf_envio" name="nf_envio" value="{% if manutencao %}{{ manutencao.nf_envio | default('') }}{% endif %}">
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <details class="card">
+        <summary class="card-header">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 010 7h5a3.5 3.5 0 010 7H6"/></svg>
+            Orçamento
+        </summary>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="descricao_manutencao">Descrição da Manutenção</label>
+                    <textarea class="form-textarea" id="descricao_manutencao" name="descricao_manutencao" rows="3">{% if manutencao %}{{ manutencao.descricao_manutencao | default('') }}{% endif %}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="orcamento">Orçamento</label>
+                    <input type="number" class="form-input" id="orcamento" name="orcamento" step="0.01" value="{% if manutencao %}{{ manutencao.orcamento or '' }}{% endif %}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="valor_final">Valor Final</label>
+                    <input type="number" class="form-input" id="valor_final" name="valor_final" step="0.01" value="{% if manutencao %}{{ manutencao.valor_final or '' }}{% endif %}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="numero_pedido">Número do Pedido</label>
+                    <input type="text" class="form-input" id="numero_pedido" name="numero_pedido" value="{% if manutencao %}{{ manutencao.numero_pedido | default('') }}{% endif %}">
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <details class="card">
+        <summary class="card-header">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><polyline points="9 11 12 14 22 4"/><polyline points="21 12 17 8 15 10"/></svg>
+            Retorno
+        </summary>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="data_retorno">Data de Retorno</label>
+                    <input type="date" class="form-input" id="data_retorno" name="data_retorno" value="{% if manutencao %}{{ manutencao.data_retorno or '' }}{% endif %}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="observacoes">Observações</label>
+                <textarea class="form-textarea" id="observacoes" name="observacoes" rows="3">{% if manutencao %}{{ manutencao.observacoes | default('') }}{% endif %}</textarea>
+            </div>
+        </div>
+    </details>
+
+    <div class="form-actions">
+        <a href="{{ url_for('manutencao.lista') }}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+            {% if editar %}Salvar Alterações{% else %}Registrar Manutenção{% endif %}
+        </button>
+    </div>
+</form>
+
+<div id="modalAparelhos" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Selecionar Aparelho</h3>
+            <button type="button" class="modal-close" onclick="fecharModalAparelhos()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="search-box">
+                <input type="text"
+                       id="searchAparelhos"
+                       class="form-input"
+                       placeholder="Buscar por modelo, IMEI ou ID PULSUS..."
+                       onkeyup="filtrarAparelhos()">
+            </div>
+            <div class="aparelho-list">
+                {% if aparelhos %}
+                    {% for ap in aparelhos %}
+                        <div class="aparelho-item"
+                             data-id="{{ ap.id }}"
+                             data-modelo="{{ ap.modelo or ap.modelo_mdm or '' }}"
+                             data-imei="{{ ap.imei or ap.imei_mdm or '' }}"
+                             data-mdm="{{ ap.mdm_id or '' }}"
+                             onclick="selecionarAparelho({{ ap.id }}, '{{ ap.modelo or ap.modelo_mdm or '-' }} - {{ ap.imei or ap.imei_mdm or '-' }}')">
+                            <div class="aparelho-info">
+                                <div class="aparelho-modelo">{{ ap.modelo or ap.modelo_mdm }}</div>
+                                <div class="aparelho-details">{{ ap.imei or ap.imei_mdm }}</div>
+                                {% if ap.mdm_id %}
+                                    <div class="aparelho-mdm">ID: {{ ap.mdm_id }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align: center; padding: 20px; color: var(--text-muted);">
+                        <p>Nenhum aparelho encontrado.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // Vincula as funções ao escopo global (window) para o HTML conseguir chamá-las
+        window.abrirModalAparelhos = function() {
+            console.log('Abrindo modal...');
+            const modal = document.getElementById('modalAparelhos');
+            if (modal) {
+                modal.style.display = 'flex';
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+                const searchInput = document.getElementById('searchAparelhos');
+                if (searchInput) searchInput.focus();
+            }
+        };
+
+        window.fecharModalAparelhos = function() {
+            const modal = document.getElementById('modalAparelhos');
+            if (modal) {
+                modal.style.display = 'none';
+                modal.classList.remove('show');
+                document.body.style.overflow = 'auto';
+                const searchInput = document.getElementById('searchAparelhos');
+                if (searchInput) {
+                    searchInput.value = '';
+                    filtrarAparelhos();
+                }
+            }
+        };
+
+        window.selecionarAparelho = function(id, texto) {
+            console.log('Selecionando aparelho:', id, texto);
+            const labelInput = document.getElementById('aparelho_selecionado');
+            const idInput = document.getElementById('aparelho_id');
+            if (labelInput) labelInput.value = texto;
+            if (idInput) idInput.value = id;
+            fecharModalAparelhos();
+        };
+
+        window.filtrarAparelhos = function() {
+            const searchInput = document.getElementById('searchAparelhos');
+            if (!searchInput) return;
+
+            const searchTerm = searchInput.value.toLowerCase();
+            const items = document.querySelectorAll('.aparelho-item');
+
+            items.forEach(item => {
+                const modelo = (item.dataset.modelo || '').toLowerCase();
+                const imei = (item.dataset.imei || '').toLowerCase();
+                const mdm = (item.dataset.mdm || '').toLowerCase();
+
+                if (modelo.includes(searchTerm) || imei.includes(searchTerm) || mdm.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        };
+
+        // Fechar modal ao clicar fora
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('modalAparelhos');
+            if (event.target === modal) {
+                console.log('Clicou fora do modal');
+                fecharModalAparelhos();
+            }
+        });
+
+        // Enter no search box seleciona o primeiro item visível
+        const searchInput = document.getElementById('searchAparelhos');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const firstVisible = document.querySelector('.aparelho-item:not([style*="display: none"])');
+                    if (firstVisible) {
+                        const id = firstVisible.dataset.id;
+                        const modeloText = firstVisible.querySelector('.aparelho-modelo').textContent;
+                        const detailsText = firstVisible.querySelector('.aparelho-details').textContent;
+                        selecionarAparelho(id, modeloText + ' - ' + detailsText);
+                    }
+                }
+            });
+        }
+    });
+</script>
+
+<style>
+    .modal {
+        position: fixed !important;
+        z-index: 999999 !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background-color: rgba(0, 0, 0, 0.5) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        visibility: hidden;
+    }
+
+    .modal.show {
+        visibility: visible;
+    }
+
+    .modal-content {
+        background-color: white;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 800px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-color, #e2e8f0);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: var(--text-color, #2d3748);
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: var(--text-muted, #718096);
+        padding: 0;
+        line-height: 1;
+    }
+
+    .modal-body {
+        padding: 20px;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .search-box {
+        margin-bottom: 16px;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .aparelho-list {
+        display: grid;
+        gap: 8px;
+    }
+
+    .aparelho-item {
+        padding: 12px 16px;
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .aparelho-item:hover {
+        background-color: var(--bg-light, #f7fafc);
+        border-color: var(--primary-color, #3182ce);
+    }
+
+    .aparelho-modelo {
+        font-weight: 600;
+        color: var(--text-color, #2d3748);
+        margin-bottom: 4px;
+    }
+
+    .aparelho-details {
+        font-size: 14px;
+        color: var(--text-muted, #718096);
+        font-family: monospace;
+    }
+
+    .aparelho-mdm {
+        font-size: 12px;
+        color: var(--text-muted, #718096);
+        margin-top: 2px;
+    }
+
+    .aparelho-info {
+        display: flex;
+        flex-direction: column;
+    }
+</style>
+{% endblock %}

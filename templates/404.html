@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Página não encontrada{% endblock %}
+{% block page_title %}404 - Página não encontrada{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><span>404</span>{% endblock %}
+
+{% block content %}
+<section class="card" style="text-align: center; padding: var(--space-16) var(--space-8);">
+    <div style="font-size: 4rem; margin-bottom: var(--space-4); opacity: 0.3;">&#128269;</div>
+    <h2 style="font-size: var(--text-2xl); margin-bottom: var(--space-2);">Página não encontrada</h2>
+    <p class="text-muted mb-6">A URL que você tentou acessar não existe ou foi movida.</p>
+    <a class="btn btn-primary" href="{{ url_for('dashboard.home') }}">Voltar para o Dashboard</a>
+</section>
+{% endblock %}

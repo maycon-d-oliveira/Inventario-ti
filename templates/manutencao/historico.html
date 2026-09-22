@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}Histórico de Manutenções - {{ aparelho.marca }} {{ aparelho.modelo }}{% endblock %}
+
+{% block page_title %}Histórico de Manutenções{% endblock %}
+
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><a href="{{ url_for('inventario.lista') }}">Inventário</a><span class="separator">/</span><a href="{{ url_for('inventario.ficha', aparelho_id=aparelho.id) }}">Ficha do Aparelho</a><span class="separator">/</span><span>Histórico</span>{% endblock %}
+
+{% block content %}
+<!-- Histórico de Manutenções do Aparelho -->
+
+<div class="detail-actions">
+    <a class="btn btn-secondary" href="{{ url_for('inventario.ficha', aparelho_id=aparelho.id) }}">← Voltar para ficha</a>
+    <a class="btn btn-primary" href="{{ url_for('manutencao.nova_para_aparelho', aparelho_id=aparelho.id) }}">
+        Nova Manutenção
+    </a>
+</div>
+
+<!-- Informações do Aparelho -->
+<section class="card">
+    <div class="card-header">
+        <h3 class="card-title">Aparelho</h3>
+    </div>
+    <div class="card-body">
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span class="label">IMEI</span>
+                <strong class="value font-mono">{{ aparelho.imei or aparelho.imei_mdm or '-' }}</strong>
+            </div>
+            <div class="detail-item">
+                <span class="label">Marca</span>
+                <strong class="value">{{ aparelho.marca or '-' }}</strong>
+            </div>
+            <div class="detail-item">
+                <span class="label">Modelo</span>
+                <strong class="value">{{ aparelho.modelo or aparelho.modelo_mdm or '-' }}</strong>
+            </div>
+            <div class="detail-item">
+                <span class="label">Usuário</span>
+                <strong class="value">{{ aparelho.usuario or '-' }}</strong>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Estatísticas -->
+{% if historico %}
+    <section class="card">
+        <div class="card-header">
+            <h3 class="card-title">Estatísticas</h3>
+        </div>
+        <div class="card-body">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon stat-total">📋</div>
+                    <div class="stat-content">
+                        <h3>{{ historico|length }}</h3>
+                        <p>Total de Manutenções</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-approved">✅</div>
+                    <div class="stat-content">
+                        <h3>{{ historico|selectattr('status', 'equalto', 'APROVADO')|list|length }}</h3>
+                        <p>Aprovado</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-rejected">❌</div>
+                    <div class="stat-content">
+                        <h3>{{ historico|selectattr('status', 'equalto', 'RECUSADO')|list|length }}</h3>
+                        <p>Recusado</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-waiting">⏳</div>
+                    <div class="stat-content">
+                        <h3>{{ historico|selectattr('status', 'in', ['ENVIAR PARA MANUTENÇÃO', 'AGUARDANDO ORÇAMENTO', 'AGUARDANDO APROVAÇÃO'])|list|length }}</h3>
+                        <p>Em Andamento</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endif %}
+
+<!-- Lista de Manutenções -->
+<section class="card">
+    <div class="card-header">
+        <h3 class="card-title">Manutenções Registradas</h3>
+    </div>
+    <div class="card-body">
+        {% if historico %}
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Código</th>
+                            <th scope="col">Empresa Suporte</th>
+                            <th scope="col">Data Envio</th>
+                            <th scope="col">Data Retorno</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Valor Final</th>
+                            <th scope="col">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for manut in historico %}
+                            <tr>
+                                <td><strong>#{{ manut.codigo }}</strong></td>
+                                <td>{{ manut.empresa_suporte or '-' }}</td>
+                                <td>{{ manut.data_envio or '-' }}</td>
+                                <td>{{ manut.data_retorno or '-' }}</td>
+                                <td>
+                                    {% if manut.status == 'ENVIAR PARA MANUTENÇÃO' %}
+                                        <span class="badge badge-warning">{{ manut.status }}</span>
+                                    {% elif manut.status == 'AGUARDANDO ORÇAMENTO' %}
+                                        <span class="badge badge-info">{{ manut.status }}</span>
+                                    {% elif manut.status == 'AGUARDANDO APROVAÇÃO' %}
+                                        <span class="badge badge-primary">{{ manut.status }}</span>
+                                    {% elif manut.status == 'APROVADO' %}
+                                        <span class="badge badge-success">{{ manut.status }}</span>
+                                    {% elif manut.status == 'RECUSADO' %}
+                                        <span class="badge badge-danger">{{ manut.status }}</span>
+                                    {% elif manut.status == 'GARANTIA' %}
+                                        <span class="badge badge-secondary">{{ manut.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>R$ {{ "%.2f"|format(manut.valor_final or 0) }}</td>
+                                <td class="actions-cell">
+                                    <div class="actions-inner">
+                                        <a href="{{ url_for('manutencao.detalhe', id=manut.id) }}" class="action-icon" aria-label="Detalhes">
+                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                            <span class="sr-only">Detalhes</span>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">🔧</div>
+                <h3>Nenhuma manutenção registrada</h3>
+                <p>Este aparelho ainda não passou por manutenções.</p>
+                <a class="btn btn-primary" href="{{ url_for('manutencao.nova_para_aparelho', aparelho_id=aparelho.id) }}">Registrar Primeira Manutenção</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

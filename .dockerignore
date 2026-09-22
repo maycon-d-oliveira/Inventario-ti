@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+.env
+.env.*
+!.env.example
+tmp*.xlsx
+.claude/
+.git

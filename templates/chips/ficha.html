@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block title %}Ficha do Chip {{ chip.linha }}{% endblock %}
+{% block page_title %}Ficha do Chip{% endblock %}
+{% block breadcrumb %}
+    <a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span>
+    <a href="{{ url_for('chips.lista') }}">Chips</a><span class="separator">/</span>
+    <span>Ficha #{{ chip.id }}</span>
+{% endblock %}
+
+{% block page_actions %}
+    <a class="btn btn-secondary" href="{{ url_for('chips.lista') }}">← Voltar para Lista</a>
+    <a class="btn btn-primary" href="{{ url_for('chips.editar', chip_id=chip.id) }}">Editar Chip</a>
+{% endblock %}
+
+{% block content %}
+<!-- Ficha: visualização detalhada do chip -->
+
+<div class="detail-actions">
+    <a class="btn btn-secondary" href="{{ url_for('chips.lista') }}">← Voltar para lista</a>
+</div>
+
+<!-- Seção: Dados do Chip -->
+<details class="card" open>
+    <summary class="card-header">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 9.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        Dados do Chip
+    </summary>
+    <div class="card-body">
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span class="label">ID</span>
+                <strong class="value">{{ chip.id }}</strong>
+            </div>
+            <div class="detail-item">
+                <span class="label">Linha</span>
+                <strong class="value font-mono">{{ chip.linha or '-' }}</strong>
+            </div>
+            <div class="detail-item">
+                <span class="label">ICCID (Chip)</span>
+                <strong class="value font-mono">{{ chip.chip or '-' }}</strong>
+            </div>
+            <div class="detail-item">
+                <span class="label">Status</span>
+                <strong class="value"><span class="badge badge-neutral">{{ chip.status or '-' }}</span></strong>
+            </div>
+            <div class="detail-item" style="grid-column: 1 / -1;">
+                <span class="label">Observações</span>
+                <strong class="value">{{ chip.observacoes or '-' }}</strong>
+            </div>
+        </div>
+    </div>
+</details>
+
+<!-- Seção: Aparelho Vinculado -->
+<details class="card" {% if aparelho_vinculado %}open{% endif %}>
+    <summary class="card-header">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        Aparelho Vinculado
+    </summary>
+    <div class="card-body">
+        {% if aparelho_vinculado %}
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="label">ID do Aparelho</span>
+                    <strong class="value">
+                        <a href="{{ url_for('inventario.ficha', aparelho_id=aparelho_vinculado.id) }}" class="link-primary">
+                            #{{ aparelho_vinculado.id }} - {{ aparelho_vinculado.usuario or 'Sem usuário' }}
+                        </a>
+                    </strong>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Usuário</span>
+                    <strong class="value">{{ aparelho_vinculado.usuario or '-' }}</strong>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Modelo</span>
+                    <strong class="value" style="min-width: 150px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ aparelho_vinculado.modelo or '-' }}</strong>
+                </div>
+                <div class="detail-item">
+                    <span class="label">IMEI</span>
+                    <strong class="value font-mono">{{ aparelho_vinculado.imei or '-' }}</strong>
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-state" style="padding: 2rem 0;">
+                <p class="text-muted">Nenhum aparelho vinculado a este chip.</p>
+            </div>
+        {% endif %}
+    </div>
+</details>
+
+<!-- Seção: Vincular Aparelho -->
+<details class="card">
+    <summary class="card-header">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        {% if aparelho_vinculado %}Vincular Outro Aparelho{% else %}Vincular Aparelho{% endif %}
+    </summary>
+    <div class="card-body">
+        <form method="post" action="{{ url_for('chips.vincular', chip_id=chip.id) }}" style="display: flex; gap: 1rem; align-items: flex-end;">
+            <div style="flex: 1; max-width: 300px;">
+                <label for="aparelho_id" class="form-label">ID do Aparelho</label>
+                <input type="number" id="aparelho_id" name="aparelho_id" class="form-input" placeholder="Digite o ID do aparelho" {% if aparelho_vinculado %}value="{{ aparelho_vinculado.id }}"{% endif %} required>
+            </div>
+            <button type="submit" class="btn btn-primary">{% if aparelho_vinculado %}Vincular Outro{% else %}Vincular{% endif %}</button>
+        </form>
+    </div>
+</details>
+
+<!-- Seção: Histórico de Vinculações -->
+<details class="card" open>
+    <summary class="card-header">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Histórico de Vinculações
+    </summary>
+    <div class="card-body">
+        <div class="table-wrapper" style="margin-top: 1rem;">
+            <table class="table" data-sortable>
+                <thead>
+                    <tr>
+                        <th scope="col">Data</th>
+                        <th scope="col">Aparelho</th>
+                        <th scope="col">Usuário</th>
+                        <th scope="col">Modelo</th>
+                        <th scope="col">IMEI</th>
+                        <th scope="col">Linha</th>
+                        <th scope="col">Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in historico %}
+                        <tr>
+                            <td>{{ item.data_vinculo }}</td>
+                            <td>
+                                {% if item.aparelho_id %}
+                                    <a href="{{ url_for('inventario.ficha', aparelho_id=item.aparelho_id) }}" class="link-primary">
+                                        #{{ item.aparelho_id }}
+                                    </a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ item.usuario or '-' }}</td>
+                            <td>{{ item.modelo or '-' }}</td>
+                            <td class="font-mono">{{ item.imei or '-' }}</td>
+                            <td>{{ item.linha or '-' }}</td>
+                            <td>{{ item.observacao or '-' }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: var(--color-muted); padding: 2rem;">
+                                Sem histórico para este chip.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</details>
+{% endblock %}

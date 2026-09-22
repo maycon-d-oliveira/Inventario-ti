@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block title %}Descarte{% endblock %}
+{% block page_title %}Descarte eletrônico{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><span>Descarte</span>{% endblock %}
+{% block page_actions %}
+    <a class="btn btn-secondary" href="{{ url_for('descarte.exportar_csv') }}">Exportar CSV</a>
+{% endblock %}
+
+{% block content %}
+<!-- Descarte: registro e histórico de itens descartados -->
+
+<section class="grid-two">
+    <!-- Cadastro manual de descarte -->
+    <article class="card">
+        <h3>Registrar descarte</h3>
+        <form method="post" class="form-grid">
+            <div class="form-group">
+                <label class="form-label" for="descarte_modelo">Modelo</label>
+                <input class="form-input" type="text" id="descarte_modelo" name="modelo" placeholder="Modelo do aparelho">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="descarte_imei">IMEI</label>
+                <input class="form-input" type="text" id="descarte_imei" name="imei" placeholder="15 dígitos">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="descarte_usuario">Antigo usuário</label>
+                <input class="form-input" type="text" id="descarte_usuario" name="antigo_usuario" placeholder="Nome do usuário">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="descarte_unidade">Unidade</label>
+                <input class="form-input" type="text" id="descarte_unidade" name="unidade" placeholder="Unidade">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="descarte_status">Status</label>
+                <input class="form-input" type="text" id="descarte_status" name="status" placeholder="Status">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="descarte_data">Data descarte</label>
+                <input class="form-input" type="date" id="descarte_data" name="data_descarte">
+            </div>
+            <div class="form-group full-width">
+                <label class="form-label" for="descarte_obs">Motivo / observação</label>
+                <textarea class="form-textarea" id="descarte_obs" name="observacao" rows="3" placeholder="Detalhes do descarte..."></textarea>
+            </div>
+            <div class="full-width" style="display: flex; justify-content: flex-end;">
+                <button class="btn btn-primary" type="submit">Salvar</button>
+            </div>
+        </form>
+    </article>
+
+    <!-- Filtros históricos -->
+    <article class="card">
+        <h3>Filtrar histórico</h3>
+        <form method="get" class="form-grid">
+            <div class="form-group">
+                <label class="form-label" for="filtro_unidade">Unidade</label>
+                <select class="form-select" id="filtro_unidade" name="unidade">
+                    <option value="">Todas</option>
+                    {% for item in unidades %}
+                        <option value="{{ item.unidade }}" {% if filters.get('unidade') == item.unidade %}selected{% endif %}>{{ item.unidade }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="filtro_data_inicio">Data inicial</label>
+                <input class="form-input" type="date" id="filtro_data_inicio" name="data_inicio" value="{{ filters.get('data_inicio', '') }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="filtro_data_fim">Data final</label>
+                <input class="form-input" type="date" id="filtro_data_fim" name="data_fim" value="{{ filters.get('data_fim', '') }}">
+            </div>
+            <div class="full-width" style="display: flex; justify-content: flex-end;">
+                <button class="btn btn-primary" type="submit">Aplicar filtros</button>
+            </div>
+        </form>
+        <input type="text" class="form-input mt-4" data-table-filter="descarteTable" placeholder="Busca rápida nas linhas da tabela..." aria-label="Busca rápida na tabela" style="width: 100%;">
+    </article>
+</section>
+
+<!-- Tabela de histórico de descartes -->
+<section class="card">
+    <div class="table-wrapper">
+        <table class="table" id="descarteTable" data-sortable>
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Modelo</th>
+                    <th scope="col">IMEI</th>
+                    <th scope="col">Antigo usuário</th>
+                    <th scope="col">Unidade</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Data</th>
+                    <th scope="col">Observação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in descartes %}
+                    <tr>
+                        <td class="text-muted text-sm">{{ item.id }}</td>
+                        <td>{{ item.modelo or '-' }}</td>
+                        <td class="text-sm font-mono">{{ item.imei or '-' }}</td>
+                        <td>{{ item.antigo_usuario or '-' }}</td>
+                        <td>{{ item.unidade or '-' }}</td>
+                        <td><span class="badge badge-neutral">{{ item.status or '-' }}</span></td>
+                        <td>{{ item.data_descarte or '-' }}</td>
+                        <td class="text-sm">{{ item.observacao or '-' }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: var(--color-muted);">Nenhum descarte registrado.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Inventario TI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        /* Custom login page styles */
+        body {
+            display: flex;
+            flex-direction: column; 
+            align-items: center;     /* Centraliza horizontalmente */
+            justify-content: center;    /* Centraliza verticalmente */
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            position: relative;
+            box-sizing: border-box;
+        }
+        .login-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 440px;
+            padding: var(--space-8);
+            box-sizing: border-box;
+            margin: auto;            /* Truque crucial para forçar o centro perfeito no flex-direction column */
+        }
+        .login-logo {
+            text-align: center;
+            margin-bottom: var(--space-6);
+        }
+        .login-logo img {
+            max-width: 150px;
+            height: auto;
+        }
+        .login-title {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: var(--space-6);
+            text-align: center;
+        }
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            margin-bottom: var(--space-6);
+        }
+        .form-check-input {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+            cursor: pointer;
+        }
+        .form-check-label {
+            font-size: var(--font-size-sm);
+            color: var(--text-muted);
+            cursor: pointer;
+            user-select: none;
+        }
+        .btn-primary {
+            width: 100%;
+            padding: var(--space-3);
+            font-weight: 600;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-area" style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; padding: var(--space-4) var(--space-6);">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'error' if category == 'error' else ('success' if category == 'success' else 'info') }}" role="alert" style="margin-bottom: var(--space-2); max-width: 440px; margin-left: auto; margin-right: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                        <span>{{ message }}</span>
+                        <button class="alert-close" onclick="this.parentElement.remove()" aria-label="Fechar notificacao" type="button" style="background: none; border: none; float: right; font-size: 1.2rem; cursor: pointer; line-height: 1;">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="login-container">
+        <div class="login-logo">
+            <img src="{{ url_for('static', filename='src/LogoAgro.png') }}" alt="Inventario TI Logo">
+        </div>
+        <h2 class="login-title">Entrar no Sistema</h2>
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.username.label(class="form-label") }}
+                {{ form.username(class="form-input") }}
+                {% if form.username.errors %}
+                    <span style="color: #e53e3e; font-size: 0.875rem; display: block; margin-top: 0.25rem;">{{ form.username.errors[0] }}</span>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.password.label(class="form-label") }}
+                {{ form.password(class="form-input") }}
+                {% if form.password.errors %}
+                    <span style="color: #e53e3e; font-size: 0.875rem; display: block; margin-top: 0.25rem;">{{ form.password.errors[0] }}</span>
+                {% endif %}
+            </div>
+            <div class="form-check">
+                {{ form.remember(class="form-check-input") }}
+                {{ form.remember.label(class="form-check-label") }}
+            </div>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+    <script src="{{ url_for('static', filename='js/table-sort.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  </body>
+</html>

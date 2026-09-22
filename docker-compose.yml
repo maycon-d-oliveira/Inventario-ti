@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: inventario
+      POSTGRES_PASSWORD: inventario
+      POSTGRES_DB: inventario
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "inventario"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://inventario:inventario@db:5432/inventario}
+      FLASK_RUN_HOST: 0.0.0.0
+      FLASK_RUN_PORT: 5000
+      FLASK_DEBUG: 0
+      SECRET_KEY: ${SECRET_KEY:-dev-inventario-celulares-secret-key}
+      PULSUS_TOKEN: ${PULSUS_TOKEN:-}
+      PULSUS_BASE_URL: ${PULSUS_BASE_URL:-https://api.pulsus.mobi}
+      OPENEDGE_URL: ${OPENEDGE_URL:-}
+      OPENEDGE_USER: ${OPENEDGE_USER:-}
+      OPENEDGE_PASSWORD: ${OPENEDGE_PASSWORD:-}
+      OPENEDGE_JAR: ${OPENEDGE_JAR:-/app/openedge.jar}
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    entrypoint: ["/app/entrypoint.sh"]
+
+volumes:
+  postgres_data:

@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Estoque{% endblock %}
+{% block page_title %}Estoque de aparelhos{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('dashboard.home') }}">Home</a><span class="separator">/</span><span>Estoque</span>{% endblock %}
+{% block page_actions %}
+    <a class="btn btn-secondary" href="{{ url_for('estoque.exportar_csv') }}">Exportar CSV</a>
+{% endblock %}
+
+{% block content %}
+<!-- Estoque: reserva, disponibilidade e movimentação -->
+
+<p class="text-muted mb-6">{{ total }} registros encontrados.</p>
+
+<!-- Filtro por unidade e busca -->
+<section class="card">
+    <form method="get" class="filters-bar">
+        <select class="form-select" name="unidade" aria-label="Filtrar por unidade" style="max-width: 300px;">
+            <option value="">Todas as unidades</option>
+            {% for item in unidades %}
+                <option value="{{ item.unidade }}" {% if filtro_unidade == item.unidade %}selected{% endif %}>{{ item.unidade }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" class="form-input" name="marca" placeholder="Filtrar por marca" value="{{ filtro_marca or '' }}" aria-label="Filtrar por marca">
+        <input type="text" class="form-input" name="modelo" placeholder="Filtrar por modelo" value="{{ filtro_modelo or '' }}" aria-label="Filtrar por modelo">
+        <select class="form-select" name="status" aria-label="Filtrar por status">
+            <option value="">Todos os status</option>
+            <option value="DISPONÍVEL" {% if filtro_status == 'DISPONÍVEL' %}selected{% endif %}>DISPONÍVEL</option>
+            <option value="EM USO" {% if filtro_status == 'EM USO' %}selected{% endif %}>EM USO</option>
+            <option value="MANUTENÇÃO" {% if filtro_status == 'MANUTENÇÃO' %}selected{% endif %}>MANUTENÇÃO</option>
+        </select>
+        <input type="hidden" name="page" value="1">
+        <button class="btn btn-primary" type="submit">Filtrar</button>
+        {% if filtro_unidade or filtro_marca or filtro_modelo or filtro_status %}
+            <a class="btn btn-ghost" href="{{ url_for('estoque.lista') }}">Limpar</a>
+        {% endif %}
+    </form>
+</section>
+
+<!-- Tabela de estoque -->
+<section class="card">
+    <div class="table-wrapper">
+        <table class="table" id="estoqueTable">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Unidade</th>
+                    <th scope="col">Marca</th>
+                    <th scope="col">Modelo</th>
+                    <th scope="col">IMEI</th>
+                    <th scope="col">Centro de custo</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" class="actions-cell">Enviar ao inventário</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in estoque %}
+                    <tr>
+                        <td class="text-muted text-sm">{{ item.id }}</td>
+                        <td>{{ item.unidade or '-' }}</td>
+                        <td>{{ item.marca or '-' }}</td>
+                        <td>{{ item.modelo or '-' }}</td>
+                        <td class="text-sm font-mono">{{ item.imei or '-' }}</td>
+                        <td>{{ item.centro_custo or '-' }}</td>
+                        <td><span class="badge badge-success">{{ item.status or '-' }}</span></td>
+                        <td class="actions-cell">
+                            <form method="post" action="{{ url_for('estoque.mover_para_inventario', estoque_id=item.id) }}" class="inline-form" style="flex-wrap: nowrap;">
+                                <input type="text" class="form-input" name="usuario" placeholder="Usuário" aria-label="Usuário" style="width: 110px;">
+                                <input type="text" class="form-input" name="responsavel" placeholder="Responsável" aria-label="Responsável" style="width: 110px;">
+                                <input type="text" class="form-input" name="uso" placeholder="INDIVIDUAL" aria-label="Uso" style="width: 100px;">
+                                <button class="btn btn-secondary btn-sm" type="submit" onclick="return confirm('Mover este aparelho para o inventário?');" aria-label="Mover para inventário">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                                    <span class="sr-only">Mover</span>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📦</div>
+                                <h3>Nenhum aparelho em estoque</h3>
+                                <p>Aparelhos em estoque aparecerão aqui.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paginação -->
+    <div class="pagination">
+        <span class="pagination-info">Mostrando {{ estoque|length }} de {{ total }} resultados</span>
+        <div class="pagination-links">
+            {% if page > 1 %}
+                <a class="btn btn-secondary btn-sm" href="{{ url_for('estoque.lista', page=page-1, **pagination_args) }}">Anterior</a>
+            {% endif %}
+            <span class="text-sm">Página {{ page }} de {{ total_pages }}</span>
+            {% if page < total_pages %}
+                <a class="btn btn-secondary btn-sm" href="{{ url_for('estoque.lista', page=page+1, **pagination_args) }}">Próxima</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
