@@ -49,8 +49,6 @@ models.py              Esquema e definições SQL
 routes/                Módulos e rotas Flask
 templates/             Templates HTML
 static/                CSS, JavaScript e imagens
-migrations/            Evolução versionada do banco
-importar_planilha.py   Importação de dados por planilha
 ```
 
 ## Docker
@@ -61,8 +59,6 @@ docker compose up --build
 ```
 
 O serviço ficará disponível em `http://localhost:5000`.
-
-> A integração OpenEdge usa o arquivo `openedge.jar` na raiz do projeto. Antes de publicar o repositório, confirme que a licença do driver permite redistribuição.
 
 
 ## Screenshots
