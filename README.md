@@ -12,7 +12,7 @@ Aplicação web para controle de aparelhos, chips, estoque, devoluções, descar
 ## Configuração local
 
 ```powershell
-git clone <URL-DO-SEU-REPOSITORIO>
+git clone https://github.com/maycon-d-oliveira/Inventario-ti
 cd inventario-ti
 python -m venv .venv
 .venv\Scripts\Activate.ps1
